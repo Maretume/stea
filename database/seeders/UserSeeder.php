@@ -141,13 +141,13 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $userData) {
-            $role = Role::where('name', $userData['role'])->first();
+            $role = Role::where('nama_kunci', $userData['role'])->first(); // name -> nama_kunci
             unset($userData['role']);
             
             $user = User::create($userData);
             $user->roles()->attach($role->id, [
-                'assigned_at' => now(),
-                'is_active' => true,
+                'ditetapkan_pada' => now(), // assigned_at -> ditetapkan_pada
+                'aktif' => true, // is_active -> aktif
             ]);
         }
     }

@@ -9,69 +9,71 @@ class Schedule extends Model
 {
     use HasFactory;
 
+    protected $table = 'jadwal';
+
     protected $fillable = [
-        'user_id',
-        'shift_id',
-        'office_id',
-        'schedule_date',
-        'work_type',
+        'id_pengguna', // user_id
+        'id_shift', // shift_id
+        'id_kantor', // office_id
+        'tanggal_jadwal', // schedule_date
+        'tipe_kerja', // work_type
         'status',
-        'notes',
-        'created_by',
-        'approved_by',
-        'approved_at',
+        'catatan', // notes
+        'dibuat_oleh', // created_by
+        'disetujui_oleh', // approved_by
+        'disetujui_pada', // approved_at
     ];
 
     protected $casts = [
-        'schedule_date' => 'date',
-        'approved_at' => 'datetime',
+        'tanggal_jadwal' => 'date', // schedule_date
+        'disetujui_pada' => 'datetime', // approved_at
     ];
 
     // Relationships
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'id_pengguna');
     }
 
     public function shift()
     {
-        return $this->belongsTo(Shift::class);
+        return $this->belongsTo(Shift::class, 'id_shift');
     }
 
     public function office()
     {
-        return $this->belongsTo(Office::class);
+        return $this->belongsTo(Office::class, 'id_kantor');
     }
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'dibuat_oleh');
     }
 
     public function approvedBy()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'disetujui_oleh');
     }
 
     // Scopes
     public function scopeByUser($query, $userId)
     {
-        return $query->where('user_id', $userId);
+        return $query->where('id_pengguna', $userId); // user_id -> id_pengguna
     }
 
     public function scopeByShift($query, $shiftId)
     {
-        return $query->where('shift_id', $shiftId);
+        return $query->where('id_shift', $shiftId); // shift_id -> id_shift
     }
 
     public function scopeByOffice($query, $officeId)
     {
-        return $query->where('office_id', $officeId);
+        return $query->where('id_kantor', $officeId); // office_id -> id_kantor
     }
 
     public function scopeByDate($query, $date)
     {
-        return $query->where('schedule_date', $date);
+        return $query->where('tanggal_jadwal', $date); // schedule_date -> tanggal_jadwal
     }
 
     public function scopeByWorkType($query, $workType)

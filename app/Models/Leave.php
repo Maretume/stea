@@ -9,70 +9,73 @@ class Leave extends Model
 {
     use HasFactory;
 
+    protected $table = 'cuti';
+
     protected $fillable = [
-        'user_id',
-        'leave_type_id',
-        'start_date',
-        'end_date',
-        'total_days',
-        'reason',
+        'id_pengguna', // user_id
+        'id_jenis_cuti', // leave_type_id
+        'tanggal_mulai', // start_date
+        'tanggal_selesai', // end_date
+        'total_hari', // total_days
+        'alasan', // reason
         'status',
-        'approved_by',
-        'approved_at',
-        'approval_notes',
+        'disetujui_oleh', // approved_by
+        'disetujui_pada', // approved_at
+        'catatan_persetujuan', // approval_notes
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'approved_at' => 'datetime',
+        'tanggal_mulai' => 'date', // start_date
+        'tanggal_selesai' => 'date', // end_date
+        'disetujui_pada' => 'datetime', // approved_at
     ];
 
     // Relationships
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'id_pengguna');
     }
 
     public function leaveType()
     {
-        return $this->belongsTo(LeaveType::class);
+        return $this->belongsTo(LeaveType::class, 'id_jenis_cuti');
     }
 
     public function approvedBy()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'disetujui_oleh');
     }
 
     // Scopes
     public function scopeByUser($query, $userId)
     {
-        return $query->where('user_id', $userId);
+        return $query->where('id_pengguna', $userId); // user_id -> id_pengguna
     }
 
     public function scopeByStatus($query, $status)
     {
+        // Assuming $status is already the translated value if coming from outside
         return $query->where('status', $status);
     }
 
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', 'menunggu'); // pending -> menunggu
     }
 
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where('status', 'disetujui'); // approved -> disetujui
     }
 
     public function scopeByDateRange($query, $startDate, $endDate)
     {
         return $query->where(function ($q) use ($startDate, $endDate) {
-            $q->whereBetween('start_date', [$startDate, $endDate])
-              ->orWhereBetween('end_date', [$startDate, $endDate])
+            $q->whereBetween('tanggal_mulai', [$startDate, $endDate]) // start_date -> tanggal_mulai
+              ->orWhereBetween('tanggal_selesai', [$startDate, $endDate]) // end_date -> tanggal_selesai
               ->orWhere(function ($q2) use ($startDate, $endDate) {
-                  $q2->where('start_date', '<=', $startDate)
-                     ->where('end_date', '>=', $endDate);
+                  $q2->where('tanggal_mulai', '<=', $startDate) // start_date -> tanggal_mulai
+                     ->where('tanggal_selesai', '>=', $endDate); // end_date -> tanggal_selesai
               });
         });
     }
@@ -80,22 +83,22 @@ class Leave extends Model
     // Helper methods
     public function isPending()
     {
-        return $this->status === 'pending';
+        return $this->status === 'menunggu'; // pending -> menunggu
     }
 
     public function isApproved()
     {
-        return $this->status === 'approved';
+        return $this->status === 'disetujui'; // approved -> disetujui
     }
 
     public function isRejected()
     {
-        return $this->status === 'rejected';
+        return $this->status === 'ditoLak'; // rejected -> ditoLak
     }
 
     public function canBeEdited()
     {
-        return $this->status === 'pending';
+        return $this->status === 'menunggu'; // pending -> menunggu
     }
 
     public function getDurationInDaysAttribute()

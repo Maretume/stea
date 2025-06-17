@@ -9,61 +9,66 @@ class PayrollPeriod extends Model
 {
     use HasFactory;
 
+    protected $table = 'periode_penggajian';
+
     protected $fillable = [
-        'name',
-        'start_date',
-        'end_date',
-        'pay_date',
+        'nama', // name
+        'tanggal_mulai', // start_date
+        'tanggal_selesai', // end_date
+        'tanggal_bayar', // pay_date
         'status',
-        'created_by',
-        'approved_by',
-        'approved_at',
+        'dibuat_oleh', // created_by
+        'disetujui_oleh', // approved_by
+        'disetujui_pada', // approved_at
+        'deskripsi', // description - added in a later migration
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'pay_date' => 'date',
-        'approved_at' => 'datetime',
+        'tanggal_mulai' => 'date',
+        'tanggal_selesai' => 'date',
+        'tanggal_bayar' => 'date',
+        'disetujui_pada' => 'datetime',
     ];
 
     // Relationships
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'dibuat_oleh');
     }
 
     public function approvedBy()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'disetujui_oleh');
     }
 
     public function payrolls()
     {
-        return $this->hasMany(Payroll::class);
+        return $this->hasMany(Payroll::class, 'id_periode_penggajian');
     }
 
     // Scopes
     public function scopeByStatus($query, $status)
     {
+        // Assuming $status is already translated if coming from outside
         return $query->where('status', $status);
     }
 
     public function scopeCurrent($query)
     {
-        return $query->where('start_date', '<=', now())
-                    ->where('end_date', '>=', now());
+        return $query->where('tanggal_mulai', '<=', now()) // start_date -> tanggal_mulai
+                    ->where('tanggal_selesai', '>=', now()); // end_date -> tanggal_selesai
     }
 
     // Helper methods
     public function isActive()
     {
-        return now()->between($this->start_date, $this->end_date);
+        return now()->between($this->tanggal_mulai, $this->tanggal_selesai); // start_date -> tanggal_mulai, end_date -> tanggal_selesai
     }
 
     public function canBeEdited()
     {
-        return in_array($this->status, ['draft', 'calculated']);
+        // draft -> konsep, calculated -> terhitung
+        return in_array($this->status, ['konsep', 'terhitung']);
     }
 
     public function getTotalPayrollsAttribute()
@@ -73,6 +78,7 @@ class PayrollPeriod extends Model
 
     public function getTotalNetSalaryAttribute()
     {
-        return $this->payrolls()->sum('net_salary');
+        // Assuming Payroll model's net_salary is translated to gaji_bersih
+        return $this->payrolls()->sum('gaji_bersih');
     }
 }

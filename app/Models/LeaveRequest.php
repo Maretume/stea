@@ -10,141 +10,151 @@ class LeaveRequest extends Model
 {
     use HasFactory;
 
+    protected $table = 'pengajuan_cuti';
+
     protected $fillable = [
-        'user_id',
-        'leave_type_id',
-        'start_date',
-        'end_date',
-        'total_days',
-        'reason',
-        'notes',
-        'emergency_contact',
-        'emergency_phone',
-        'work_handover',
+        'id_pengguna', // user_id
+        'id_jenis_cuti', // leave_type_id
+        'tanggal_mulai', // start_date
+        'tanggal_selesai', // end_date
+        'total_hari', // total_days
+        'alasan', // reason
+        'catatan', // notes
+        'kontak_darurat', // emergency_contact
+        'telepon_darurat', // emergency_phone
+        'serah_terima_pekerjaan', // work_handover
         'status',
-        'approved_by',
-        'approved_at',
-        'approval_notes',
-        'attachments',
-        'is_half_day',
-        'half_day_type',
+        'disetujui_oleh', // approved_by
+        'disetujui_pada', // approved_at
+        'catatan_persetujuan', // approval_notes
+        'lampiran', // attachments
+        'setengah_hari', // is_half_day
+        'tipe_setengah_hari', // half_day_type
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'approved_at' => 'datetime',
-        'attachments' => 'array',
-        'is_half_day' => 'boolean',
+        'tanggal_mulai' => 'date', // start_date
+        'tanggal_selesai' => 'date', // end_date
+        'disetujui_pada' => 'datetime', // approved_at
+        'lampiran' => 'array', // attachments
+        'setengah_hari' => 'boolean', // is_half_day
     ];
 
     // Relationships
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'id_pengguna');
     }
 
     public function leaveType()
     {
-        return $this->belongsTo(LeaveType::class);
+        return $this->belongsTo(LeaveType::class, 'id_jenis_cuti');
     }
 
     public function approvedBy()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'disetujui_oleh');
     }
 
     public function approvals()
     {
+        // The morphable name 'approvable' might need to change if the columns in 'persetujuan_izin_kerja'
+        // (id_persetujuan, tipe_persetujuan) were intended to be reflected here.
+        // For now, keeping 'approvable' as it's a common convention for Laravel's morphs.
+        // If PermitApproval model uses custom morph keys, this needs to align.
         return $this->morphMany(PermitApproval::class, 'approvable');
     }
 
     // Scopes
     public function scopeByUser($query, $userId)
     {
-        return $query->where('user_id', $userId);
+        return $query->where('id_pengguna', $userId); // user_id -> id_pengguna
     }
 
     public function scopeByStatus($query, $status)
     {
+        // Assuming $status is already the translated value
         return $query->where('status', $status);
     }
 
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', 'menunggu'); // pending -> menunggu
     }
 
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where('status', 'disetujui'); // approved -> disetujui
     }
 
     public function scopeByDateRange($query, $startDate, $endDate)
     {
         return $query->where(function ($q) use ($startDate, $endDate) {
-            $q->whereBetween('start_date', [$startDate, $endDate])
-              ->orWhereBetween('end_date', [$startDate, $endDate])
+            $q->whereBetween('tanggal_mulai', [$startDate, $endDate]) // start_date -> tanggal_mulai
+              ->orWhereBetween('tanggal_selesai', [$startDate, $endDate]) // end_date -> tanggal_selesai
               ->orWhere(function ($q2) use ($startDate, $endDate) {
-                  $q2->where('start_date', '<=', $startDate)
-                     ->where('end_date', '>=', $endDate);
+                  $q2->where('tanggal_mulai', '<=', $startDate) // start_date -> tanggal_mulai
+                     ->where('tanggal_selesai', '>=', $endDate); // end_date -> tanggal_selesai
               });
         });
     }
 
     public function scopeThisYear($query)
     {
-        return $query->whereYear('start_date', now()->year);
+        return $query->whereYear('tanggal_mulai', now()->year); // start_date -> tanggal_mulai
     }
 
     public function scopeByLeaveType($query, $leaveTypeId)
     {
-        return $query->where('leave_type_id', $leaveTypeId);
+        return $query->where('id_jenis_cuti', $leaveTypeId); // leave_type_id -> id_jenis_cuti
     }
 
     // Helper methods
     public function isPending()
     {
-        return $this->status === 'pending';
+        return $this->status === 'menunggu'; // pending -> menunggu
     }
 
     public function isApproved()
     {
-        return $this->status === 'approved';
+        return $this->status === 'disetujui'; // approved -> disetujui
     }
 
     public function isRejected()
     {
-        return $this->status === 'rejected';
+        return $this->status === 'ditoLak'; // rejected -> ditoLak
     }
 
     public function isCancelled()
     {
-        return $this->status === 'cancelled';
+        return $this->status === 'dibatalkan'; // cancelled -> dibatalkan
     }
 
     public function canBeEdited()
     {
-        return $this->status === 'pending' && $this->start_date->gt(today());
+        // Assumes start_date is available as a Carbon instance due to casts
+        return $this->status === 'menunggu' && $this->tanggal_mulai->gt(today()); // pending -> menunggu, start_date -> tanggal_mulai
     }
 
     public function canBeApproved()
     {
-        return $this->status === 'pending';
+        return $this->status === 'menunggu'; // pending -> menunggu
     }
 
     public function canBeCancelled()
     {
-        return in_array($this->status, ['pending', 'approved']) && $this->start_date->gt(today());
+        // Assumes start_date is available as a Carbon instance
+        return in_array($this->status, ['menunggu', 'disetujui']) && $this->tanggal_mulai->gt(today()); // pending -> menunggu, approved -> disetujui, start_date -> tanggal_mulai
     }
 
     public function getStatusBadgeAttribute()
     {
+        // Keys should be the Indonesian ENUM values
         $badges = [
-            'pending' => 'warning',
-            'approved' => 'success',
-            'rejected' => 'danger',
-            'cancelled' => 'secondary',
+            'menunggu' => 'warning', // pending
+            'disetujui' => 'success', // approved
+            'ditoLak' => 'danger', // rejected (note: ditoLak from migration)
+            'dibatalkan' => 'secondary', // cancelled
         ];
 
         return $badges[$this->status] ?? 'secondary';
@@ -152,29 +162,30 @@ class LeaveRequest extends Model
 
     public function getStatusTextAttribute()
     {
+        // Keys should be the Indonesian ENUM values
         $texts = [
-            'pending' => 'Menunggu Persetujuan',
-            'approved' => 'Disetujui',
-            'rejected' => 'Ditolak',
-            'cancelled' => 'Dibatalkan',
+            'menunggu' => 'Menunggu Persetujuan',
+            'disetujui' => 'Disetujui',
+            'ditoLak' => 'Ditolak',
+            'dibatalkan' => 'Dibatalkan',
         ];
 
-        return $texts[$this->status] ?? 'Unknown';
+        return $texts[$this->status] ?? 'Tidak Diketahui'; // Unknown -> Tidak Diketahui
     }
 
     // Calculation methods
     public function calculateTotalDays()
     {
-        if ($this->is_half_day) {
+        if ($this->setengah_hari) { // is_half_day -> setengah_hari
             return 0.5;
         }
 
-        if (!$this->start_date || !$this->end_date) {
+        if (!$this->tanggal_mulai || !$this->tanggal_selesai) { // start_date -> tanggal_mulai, end_date -> tanggal_selesai
             return 0;
         }
 
-        $start = Carbon::parse($this->start_date);
-        $end = Carbon::parse($this->end_date);
+        $start = Carbon::parse($this->tanggal_mulai); // start_date -> tanggal_mulai
+        $end = Carbon::parse($this->tanggal_selesai); // end_date -> tanggal_selesai
 
         // Count only working days (Monday to Friday)
         $totalDays = 0;
@@ -192,21 +203,21 @@ class LeaveRequest extends Model
 
     public function updateTotalDays()
     {
-        $this->total_days = $this->calculateTotalDays();
+        $this->total_hari = $this->calculateTotalDays(); // total_days -> total_hari
         $this->save();
-        return $this->total_days;
+        return $this->total_hari; // total_days -> total_hari
     }
 
     // Validation methods
     public function isValidRequest()
     {
         // Check if start date is not in the past
-        if ($this->start_date->lt(today())) {
+        if ($this->tanggal_mulai->lt(today())) { // start_date -> tanggal_mulai
             return false;
         }
 
         // Check if end date is after start date
-        if ($this->end_date->lt($this->start_date)) {
+        if ($this->tanggal_selesai->lt($this->tanggal_mulai)) { // end_date -> tanggal_selesai, start_date -> tanggal_mulai
             return false;
         }
 
@@ -220,54 +231,58 @@ class LeaveRequest extends Model
 
     public function hasEnoughBalance()
     {
-        $leaveType = $this->leaveType;
+        $leaveType = $this->leaveType; // This relationship should use translated foreign key 'id_jenis_cuti'
         if (!$leaveType) {
             return false;
         }
-
-        $remainingDays = $leaveType->getRemainingDays($this->user_id, $this->start_date->year);
-        return $remainingDays >= $this->total_days;
+        // user_id -> id_pengguna, start_date -> tanggal_mulai, total_days -> total_hari
+        // LeaveType's getRemainingDays method itself needs to be updated for translated attributes
+        $remainingDays = $leaveType->getRemainingDays($this->id_pengguna, $this->tanggal_mulai->year);
+        return $remainingDays >= $this->total_hari;
     }
 
     public function hasConflict()
     {
         // Check for overlapping leave requests
-        return static::where('user_id', $this->user_id)
+        return static::where('id_pengguna', $this->id_pengguna) // user_id -> id_pengguna
                     ->where('id', '!=', $this->id)
                     ->where(function ($query) {
-                        $query->whereBetween('start_date', [$this->start_date, $this->end_date])
-                              ->orWhereBetween('end_date', [$this->start_date, $this->end_date])
+                        // start_date -> tanggal_mulai, end_date -> tanggal_selesai
+                        $query->whereBetween('tanggal_mulai', [$this->tanggal_mulai, $this->tanggal_selesai])
+                              ->orWhereBetween('tanggal_selesai', [$this->tanggal_mulai, $this->tanggal_selesai])
                               ->orWhere(function ($q) {
-                                  $q->where('start_date', '<=', $this->start_date)
-                                    ->where('end_date', '>=', $this->end_date);
+                                  $q->where('tanggal_mulai', '<=', $this->tanggal_mulai)
+                                    ->where('tanggal_selesai', '>=', $this->tanggal_selesai);
                               });
                     })
-                    ->whereIn('status', ['pending', 'approved'])
+                    ->whereIn('status', ['menunggu', 'disetujui']) // pending -> menunggu, approved -> disetujui
                     ->exists();
     }
 
     public function getFormattedDurationAttribute()
     {
-        if ($this->is_half_day) {
-            return '0.5 hari (' . ucfirst($this->half_day_type) . ')';
+        if ($this->setengah_hari) { // is_half_day -> setengah_hari
+            // half_day_type -> tipe_setengah_hari, ENUM 'pagi', 'siang'
+            $tipe = $this->tipe_setengah_hari === 'pagi' ? 'Pagi' : ($this->tipe_setengah_hari === 'siang' ? 'Siang' : '');
+            return '0.5 hari (' . $tipe . ')';
         }
 
-        return $this->total_days . ' hari';
+        return $this->total_hari . ' hari'; // total_days -> total_hari
     }
 
     public function getFormattedDateRangeAttribute()
     {
-        if ($this->start_date->eq($this->end_date)) {
-            return $this->start_date->format('d M Y');
+        if ($this->tanggal_mulai->eq($this->tanggal_selesai)) { // start_date -> tanggal_mulai, end_date -> tanggal_selesai
+            return $this->tanggal_mulai->format('d M Y');
         }
 
-        return $this->start_date->format('d M Y') . ' - ' . $this->end_date->format('d M Y');
+        return $this->tanggal_mulai->format('d M Y') . ' - ' . $this->tanggal_selesai->format('d M Y');
     }
 
     // File attachment methods
     public function addAttachment($filename, $originalName, $size)
     {
-        $attachments = $this->attachments ?? [];
+        $attachments = $this->lampiran ?? []; // attachments -> lampiran
         $attachments[] = [
             'filename' => $filename,
             'original_name' => $originalName,
@@ -275,14 +290,14 @@ class LeaveRequest extends Model
             'uploaded_at' => now()->toISOString(),
         ];
         
-        $this->attachments = $attachments;
+        $this->lampiran = $attachments; // attachments -> lampiran
         $this->save();
     }
 
     public function removeAttachment($filename)
     {
-        $attachments = $this->attachments ?? [];
-        $this->attachments = array_filter($attachments, function ($attachment) use ($filename) {
+        $attachments = $this->lampiran ?? []; // attachments -> lampiran
+        $this->lampiran = array_filter($attachments, function ($attachment) use ($filename) {
             return $attachment['filename'] !== $filename;
         });
         $this->save();
@@ -290,6 +305,6 @@ class LeaveRequest extends Model
 
     public function hasAttachments()
     {
-        return !empty($this->attachments);
+        return !empty($this->lampiran); // attachments -> lampiran
     }
 }

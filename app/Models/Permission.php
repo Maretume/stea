@@ -9,23 +9,25 @@ class Permission extends Model
 {
     use HasFactory;
 
+    protected $table = 'izin';
+
     protected $fillable = [
-        'name',
-        'display_name',
-        'module',
-        'description',
+        'nama_kunci', // name
+        'nama_tampilan', // display_name
+        'modul', // module
+        'deskripsi', // description
     ];
 
     // Relationships
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'role_permissions')
-                    ->withTimestamps();
+        return $this->belongsToMany(Role::class, 'peran_izin', 'id_izin', 'id_peran') // role_permissions -> peran_izin
+                    ->withTimestamps('dibuat_pada', 'diperbarui_pada');
     }
 
     // Scopes
     public function scopeByModule($query, $module)
     {
-        return $query->where('module', $module);
+        return $query->where('modul', $module); // module column name is already 'modul'
     }
 }

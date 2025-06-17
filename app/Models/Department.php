@@ -9,37 +9,40 @@ class Department extends Model
 {
     use HasFactory;
 
+    protected $table = 'departemen';
+
     protected $fillable = [
-        'code',
-        'name',
-        'description',
-        'is_active',
+        'kode', // code
+        'nama', // name
+        'deskripsi', // description
+        'aktif', // is_active
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'aktif' => 'boolean', // is_active
     ];
 
     // Relationships
     public function employees()
     {
-        return $this->hasMany(Employee::class);
+        return $this->hasMany(Employee::class, 'id_departemen'); // foreignKey
     }
 
     public function positions()
     {
-        return $this->hasMany(Position::class);
+        return $this->hasMany(Position::class, 'id_departemen'); // foreignKey
     }
 
     // Scopes
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('aktif', true); // is_active -> aktif
     }
 
     // Helper methods
     public function getActiveEmployeesCount()
     {
-        return $this->employees()->where('employment_status', 'active')->count();
+        // Assuming Employee model uses 'status_kepegawaian' and 'aktif'
+        return $this->employees()->where('status_kepegawaian', 'aktif')->count();
     }
 }

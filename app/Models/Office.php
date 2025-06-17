@@ -9,40 +9,51 @@ class Office extends Model
 {
     use HasFactory;
 
+    protected $table = 'kantor';
+
     protected $fillable = [
-        'name',
-        'latitude',
-        'longitude',
+        'nama', // name
+        'lintang', // latitude
+        'bujur', // longitude
         'radius',
-        'is_active',
+        'aktif', // is_active
     ];
 
     protected $casts = [
-        'latitude' => 'decimal:8',
-        'longitude' => 'decimal:8',
-        'is_active' => 'boolean',
+        'lintang' => 'decimal:8', // latitude
+        'bujur' => 'decimal:8', // longitude
+        'aktif' => 'boolean', // is_active
     ];
 
     // Relationships
     public function schedules()
     {
-        return $this->hasMany(Schedule::class);
+        return $this->hasMany(Schedule::class, 'id_kantor'); // foreignKey
     }
 
     public function attendances()
     {
-        return $this->hasMany(Attendance::class);
+        return $this->hasMany(Attendance::class, 'id_kantor'); // foreignKey
     }
 
     public function users()
     {
-        return $this->hasManyThrough(User::class, Schedule::class);
+        // Office -> Schedule (id_kantor on schedules, id on offices)
+        // Schedule -> User (id_pengguna on schedules, id on users)
+        return $this->hasManyThrough(
+            User::class,
+            Schedule::class,
+            'id_kantor', // Foreign key on Schedule table (intermediate table)
+            'id',        // Foreign key on User table (far table)
+            'id',        // Local key on Office table (this table)
+            'id_pengguna'  // Local key on Schedule table (intermediate table)
+        );
     }
 
     // Scopes
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('aktif', true); // is_active -> aktif
     }
 
     // Helper methods

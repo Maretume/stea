@@ -9,25 +9,27 @@ class PayrollDetail extends Model
 {
     use HasFactory;
 
+    protected $table = 'detail_penggajian';
+
     protected $fillable = [
-        'payroll_id',
-        'salary_component_id',
-        'amount',
-        'calculation_notes',
+        'id_penggajian', // payroll_id
+        'id_komponen_gaji', // salary_component_id
+        'jumlah', // amount
+        'catatan_perhitungan', // calculation_notes
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
+        'jumlah' => 'decimal:2', // amount
     ];
 
     // Relationships
     public function payroll()
     {
-        return $this->belongsTo(Payroll::class);
+        return $this->belongsTo(Payroll::class, 'id_penggajian');
     }
 
     public function salaryComponent()
     {
-        return $this->belongsTo(SalaryComponent::class);
+        return $this->belongsTo(SalaryComponent::class, 'id_komponen_gaji');
     }
 }

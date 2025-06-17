@@ -10,46 +10,58 @@ class Shift extends Model
 {
     use HasFactory;
 
+    protected $table = 'shift';
+
     protected $fillable = [
-        'name',
-        'start_time',
-        'end_time',
-        'is_active',
+        'nama', // name
+        'waktu_mulai', // start_time
+        'waktu_selesai', // end_time
+        'aktif', // is_active
     ];
 
     protected $casts = [
-        'start_time' => 'datetime:H:i:s',
-        'end_time' => 'datetime:H:i:s',
-        'is_active' => 'boolean',
+        'waktu_mulai' => 'datetime:H:i:s', // start_time
+        'waktu_selesai' => 'datetime:H:i:s', // end_time
+        'aktif' => 'boolean', // is_active
     ];
 
     // Relationships
     public function schedules()
     {
-        return $this->hasMany(Schedule::class);
+        return $this->hasMany(Schedule::class, 'id_shift'); // foreignKey
     }
 
     public function users()
     {
-        return $this->hasManyThrough(User::class, Schedule::class);
+        // Shift -> Schedule (id_shift on schedules, id on shifts)
+        // Schedule -> User (id_pengguna on schedules, id on users)
+        return $this->hasManyThrough(
+            User::class,
+            Schedule::class,
+            'id_shift',     // Foreign key on Schedule table (intermediate table)
+            'id',           // Foreign key on User table (far table)
+            'id',           // Local key on Shift table (this table)
+            'id_pengguna'   // Local key on Schedule table (intermediate table)
+        );
     }
 
     // Scopes
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('aktif', true); // is_active -> aktif
     }
 
     // Helper methods
     public function calculateLateMinutes($clockInTime)
     {
-        $startTime = Carbon::parse($this->start_time);
+        $startTime = Carbon::parse($this->waktu_mulai); // start_time -> waktu_mulai
         $clockIn = Carbon::parse($clockInTime);
 
         if ($clockIn->gt($startTime)) {
             // Get tolerance from default attendance rule
-            $defaultRule = \App\Models\AttendanceRule::where('is_default', true)->first();
-            $toleranceMinutes = $defaultRule ? $defaultRule->late_tolerance_minutes : 15;
+            // Assuming AttendanceRule model uses 'standar' and 'toleransi_keterlambatan_menit'
+            $defaultRule = \App\Models\AttendanceRule::where('standar', true)->first();
+            $toleranceMinutes = $defaultRule ? $defaultRule->toleransi_keterlambatan_menit : 15;
 
             // Hitung menit terlambat, dikurangi toleransi
             // Pastikan perhitungan yang benar: clock_in - start_time
@@ -67,12 +79,13 @@ class Shift extends Model
      */
     public function calculateAttendanceStatus($clockInTime)
     {
-        $startTime = Carbon::parse($this->start_time);
+        $startTime = Carbon::parse($this->waktu_mulai); // start_time -> waktu_mulai
         $clockIn = Carbon::parse($clockInTime);
 
         // Get tolerance from default attendance rule
-        $defaultRule = \App\Models\AttendanceRule::where('is_default', true)->first();
-        $toleranceMinutes = $defaultRule ? $defaultRule->late_tolerance_minutes : 15;
+        // Assuming AttendanceRule model uses 'standar' and 'toleransi_keterlambatan_menit'
+        $defaultRule = \App\Models\AttendanceRule::where('standar', true)->first();
+        $toleranceMinutes = $defaultRule ? $defaultRule->toleransi_keterlambatan_menit : 15;
 
         if ($clockIn->lt($startTime)) {
             return 'early'; // Terlalu dini
@@ -97,7 +110,7 @@ class Shift extends Model
      */
     public function calculateEarlyMinutes($clockInTime)
     {
-        $startTime = Carbon::parse($this->start_time);
+        $startTime = Carbon::parse($this->waktu_mulai); // start_time -> waktu_mulai
         $clockIn = Carbon::parse($clockInTime);
 
         if ($clockIn->lt($startTime)) {
@@ -109,13 +122,14 @@ class Shift extends Model
 
     public function calculateEarlyLeaveMinutes($clockOutTime)
     {
-        $endTime = Carbon::parse($this->end_time);
+        $endTime = Carbon::parse($this->waktu_selesai); // end_time -> waktu_selesai
         $clockOut = Carbon::parse($clockOutTime);
 
         if ($clockOut->lt($endTime)) {
             // Get tolerance from default attendance rule
-            $defaultRule = \App\Models\AttendanceRule::where('is_default', true)->first();
-            $toleranceMinutes = $defaultRule ? $defaultRule->early_leave_tolerance_minutes : 15;
+            // Assuming AttendanceRule model uses 'standar' and 'toleransi_pulang_awal_menit'
+            $defaultRule = \App\Models\AttendanceRule::where('standar', true)->first();
+            $toleranceMinutes = $defaultRule ? $defaultRule->toleransi_pulang_awal_menit : 15;
 
             // Pastikan perhitungan yang benar: end_time - clock_out
             $diffInSeconds = $endTime->timestamp - $clockOut->timestamp;
@@ -128,7 +142,7 @@ class Shift extends Model
 
     public function calculateOvertimeMinutes($clockOutTime)
     {
-        $endTime = Carbon::parse($this->end_time);
+        $endTime = Carbon::parse($this->waktu_selesai); // end_time -> waktu_selesai
         $clockOut = Carbon::parse($clockOutTime);
 
         if ($clockOut->gt($endTime)) {
@@ -143,26 +157,26 @@ class Shift extends Model
 
     public function getWorkDurationMinutes()
     {
-        $startTime = Carbon::parse($this->start_time);
-        $endTime = Carbon::parse($this->end_time);
+        $startTime = Carbon::parse($this->waktu_mulai); // start_time -> waktu_mulai
+        $endTime = Carbon::parse($this->waktu_selesai); // end_time -> waktu_selesai
 
         return $endTime->diffInMinutes($startTime);
     }
 
     public function getFormattedStartTimeAttribute()
     {
-        return Carbon::parse($this->start_time)->format('H:i');
+        return Carbon::parse($this->waktu_mulai)->format('H:i'); // start_time -> waktu_mulai
     }
 
     public function getFormattedEndTimeAttribute()
     {
-        return Carbon::parse($this->end_time)->format('H:i');
+        return Carbon::parse($this->waktu_selesai)->format('H:i'); // end_time -> waktu_selesai
     }
 
     public function getShiftDurationAttribute()
     {
-        $startTime = Carbon::parse($this->start_time);
-        $endTime = Carbon::parse($this->end_time);
+        $startTime = Carbon::parse($this->waktu_mulai); // start_time -> waktu_mulai
+        $endTime = Carbon::parse($this->waktu_selesai); // end_time -> waktu_selesai
         
         return $endTime->diff($startTime)->format('%H:%I');
     }

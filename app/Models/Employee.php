@@ -9,92 +9,94 @@ class Employee extends Model
 {
     use HasFactory;
 
+    protected $table = 'karyawan';
+
     protected $fillable = [
-        'user_id',
-        'department_id',
-        'position_id',
-        'supervisor_id',
-        'hire_date',
-        'contract_start',
-        'contract_end',
-        'employment_type',
-        'employment_status',
-        'basic_salary',
-        'bank_name',
-        'bank_account',
-        'bank_account_name',
-        'default_shift_id',
-        'default_office_id',
-        'default_work_type',
+        'id_pengguna', // user_id
+        'id_departemen', // department_id
+        'id_jabatan', // position_id
+        'id_atasan', // supervisor_id
+        'tanggal_rekrut', // hire_date
+        'mulai_kontrak', // contract_start
+        'akhir_kontrak', // contract_end
+        'jenis_kepegawaian', // employment_type
+        'status_kepegawaian', // employment_status
+        'gaji_pokok', // basic_salary
+        'nama_bank', // bank_name
+        'rekening_bank', // bank_account
+        'nama_rekening_bank', // bank_account_name
+        'id_shift_standar', // default_shift_id
+        'id_kantor_standar', // default_office_id
+        'tipe_kerja_standar', // default_work_type
     ];
 
     protected $casts = [
-        'hire_date' => 'date',
-        'contract_start' => 'date',
-        'contract_end' => 'date',
-        'basic_salary' => 'decimal:2',
+        'tanggal_rekrut' => 'date', // hire_date
+        'mulai_kontrak' => 'date', // contract_start
+        'akhir_kontrak' => 'date', // contract_end
+        'gaji_pokok' => 'decimal:2', // basic_salary
     ];
 
     // Relationships
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'id_pengguna');
     }
 
     public function department()
     {
-        return $this->belongsTo(Department::class);
+        return $this->belongsTo(Department::class, 'id_departemen');
     }
 
     public function position()
     {
-        return $this->belongsTo(Position::class);
+        return $this->belongsTo(Position::class, 'id_jabatan');
     }
 
     public function supervisor()
     {
-        return $this->belongsTo(User::class, 'supervisor_id');
+        return $this->belongsTo(User::class, 'id_atasan');
     }
 
     public function defaultShift()
     {
-        return $this->belongsTo(\App\Models\Shift::class, 'default_shift_id');
+        return $this->belongsTo(\App\Models\Shift::class, 'id_shift_standar');
     }
 
     public function defaultOffice()
     {
-        return $this->belongsTo(\App\Models\Office::class, 'default_office_id');
+        return $this->belongsTo(\App\Models\Office::class, 'id_kantor_standar');
     }
 
     // Scopes
     public function scopeActive($query)
     {
-        return $query->where('employment_status', 'active');
+        return $query->where('status_kepegawaian', 'aktif'); // employment_status -> status_kepegawaian, 'active' -> 'aktif'
     }
 
     public function scopeByDepartment($query, $departmentId)
     {
-        return $query->where('department_id', $departmentId);
+        return $query->where('id_departemen', $departmentId); // department_id -> id_departemen
     }
 
     public function scopeByEmploymentType($query, $type)
     {
-        return $query->where('employment_type', $type);
+        return $query->where('jenis_kepegawaian', $type); // employment_type -> jenis_kepegawaian
     }
 
     // Helper methods
     public function isActive()
     {
-        return $this->employment_status === 'active';
+        return $this->status_kepegawaian === 'aktif'; // employment_status -> status_kepegawaian, 'active' -> 'aktif'
     }
 
     public function getYearsOfServiceAttribute()
     {
-        return $this->hire_date->diffInYears(now());
+        return $this->tanggal_rekrut->diffInYears(now()); // hire_date -> tanggal_rekrut
     }
 
     public function getMonthsOfServiceAttribute()
     {
-        return $this->hire_date->diffInMonths(now());
+        return $this->tanggal_rekrut->diffInMonths(now()); // hire_date -> tanggal_rekrut
     }
 }
