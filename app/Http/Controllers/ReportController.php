@@ -7,6 +7,8 @@ use App\Models\Employee;
 use App\Models\Attendance;
 use App\Models\Payroll;
 use App\Models\Leave;
+use App\Models\LeaveType;
+use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -39,6 +41,50 @@ class ReportController extends Controller
         return view('reports.hr', compact(
             'employeeCount', 'newEmployees', 'resignedEmployees', 
             'leaveRequests', 'departmentStats', 'startDate', 'endDate'
+        ));
+    }
+
+    public function leavesReport(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+        $departmentId = $request->input('department_id');
+        $leaveTypeId = $request->input('leave_type_id');
+        $status = $request->input('status');
+
+        $query = Leave::with(['user.employee.department', 'leaveType'])
+            ->whereBetween('start_date', [$startDate, $endDate]);
+
+        if ($departmentId) {
+            $query->whereHas('user.employee', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        if ($leaveTypeId) {
+            $query->where('leave_type_id', $leaveTypeId);
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        $leaves = $query->orderBy('start_date', 'desc')->paginate(20)->withQueryString();
+
+        $departments = Department::where('is_active', true)->orderBy('name')->get();
+        $leaveTypes = LeaveType::orderBy('name')->get();
+        $statuses = ['pending', 'approved', 'rejected', 'cancelled']; // Or fetch from a config/model if dynamic
+
+        return view('reports.leaves', compact(
+            'leaves',
+            'startDate',
+            'endDate',
+            'departmentId',
+            'leaveTypeId',
+            'status',
+            'departments',
+            'leaveTypes',
+            'statuses'
         ));
     }
 

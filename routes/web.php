@@ -1149,6 +1149,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('reports')->name('reports.')->middleware('permission:reports.view')->group(function () {
         Route::get('/hr', [ReportController::class, 'hr'])->name('hr');
         Route::get('/attendance', [ReportController::class, 'attendance'])->name('attendance');
+        Route::get('/leaves', [ReportController::class, 'leavesReport'])->name('leaves')->middleware('permission:reports.leaves');
         
         Route::middleware('permission:reports.financial')->group(function () {
             Route::get('/financial', [ReportController::class, 'financial'])->name('financial');

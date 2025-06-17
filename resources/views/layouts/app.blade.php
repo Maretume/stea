@@ -316,103 +316,120 @@
                 </li>
                 
                 @auth
-                    @if(auth()->user()->hasPermission('users.view'))
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('users*') ? 'active' : '' }}" href="{{ route('users.index') }}">
-                            <i class="fas fa-users me-2"></i>Manajemen User
-                        </a>
-                    </li>
-                    @endif
-                    
-                    @if(auth()->user()->hasPermission('employees.view'))
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('employees*') ? 'active' : '' }}" href="{{ route('employees.index') }}">
-                            <i class="fas fa-user-tie me-2"></i>Data Karyawan
-                        </a>
-                    </li>
-                    @endif
+                    @unless(Auth::user()->hasRole('ceo'))
+                        @if(auth()->user()->hasPermission('users.view'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('users*') ? 'active' : '' }}" href="{{ route('users.index') }}">
+                                <i class="fas fa-users me-2"></i>Manajemen User
+                            </a>
+                        </li>
+                        @endif
 
-                    @if(auth()->user()->hasPermission('departments.view'))
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('departments*') ? 'active' : '' }}" href="{{ route('departments.index') }}">
-                            <i class="fas fa-sitemap me-2"></i>Departemen
-                        </a>
-                    </li>
-                    @endif
+                        @if(auth()->user()->hasPermission('employees.view'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('employees*') ? 'active' : '' }}" href="{{ route('employees.index') }}">
+                                <i class="fas fa-user-tie me-2"></i>Data Karyawan
+                            </a>
+                        </li>
+                        @endif
 
-                    @if(auth()->user()->hasPermission('positions.view'))
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('positions*') ? 'active' : '' }}" href="{{ route('positions.index') }}">
-                            <i class="fas fa-briefcase me-2"></i>Posisi Jabatan
-                        </a>
-                    </li>
-                    @endif
+                        @if(auth()->user()->hasPermission('departments.view'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('departments*') ? 'active' : '' }}" href="{{ route('departments.index') }}">
+                                <i class="fas fa-sitemap me-2"></i>Departemen
+                            </a>
+                        </li>
+                        @endif
 
+                        @if(auth()->user()->hasPermission('positions.view'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('positions*') ? 'active' : '' }}" href="{{ route('positions.index') }}">
+                                <i class="fas fa-briefcase me-2"></i>Posisi Jabatan
+                            </a>
+                        </li>
+                        @endif
+                    @endunless
+
+                    {{-- Absensi link - Visible to CEO and others --}}
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('attendance*') ? 'active' : '' }}" href="{{ route('attendance.index') }}">
                             <i class="fas fa-clock me-2"></i>Absensi
                         </a>
                     </li>
 
-                    <!-- Jadwal Kerja Menu - Karyawan hanya bisa lihat, Admin/HR bisa kelola -->
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('schedules*') ? 'active' : '' }}" href="{{ route('schedules.index') }}">
-                            <i class="fas fa-calendar-alt me-2"></i>
-                            @if(auth()->user()->hasRole('karyawan'))
-                                Jadwal Saya
-                            @else
-                                Jadwal Kerja
-                            @endif
-                        </a>
-                    </li>
+                    @unless(Auth::user()->hasRole('ceo'))
+                        <!-- Jadwal Kerja Menu - Karyawan hanya bisa lihat, Admin/HR bisa kelola -->
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('schedules*') ? 'active' : '' }}" href="{{ route('schedules.index') }}">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                @if(auth()->user()->hasRole('karyawan'))
+                                    Jadwal Saya
+                                @else
+                                    Jadwal Kerja
+                                @endif
+                            </a>
+                        </li>
 
-                    <!-- Shift Kerja Menu - Hanya untuk Admin/HR -->
-                    @if(auth()->user()->hasPermission('shifts.view'))
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('shifts*') ? 'active' : '' }}" href="{{ route('shifts.index') }}">
-                            <i class="fas fa-business-time me-2"></i>Shift Kerja
-                        </a>
-                    </li>
+                        <!-- Shift Kerja Menu - Hanya untuk Admin/HR -->
+                        @if(auth()->user()->hasPermission('shifts.view'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('shifts*') ? 'active' : '' }}" href="{{ route('shifts.index') }}">
+                                <i class="fas fa-business-time me-2"></i>Shift Kerja
+                            </a>
+                        </li>
+                        @endif
+
+                        <!-- Kantor Menu - Hanya untuk Admin/HR -->
+                        @if(auth()->user()->hasPermission('offices.view'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('offices*') ? 'active' : '' }}" href="{{ route('offices.index') }}">
+                                <i class="fas fa-building me-2"></i>Kantor
+                            </a>
+                        </li>
+                        @endif
+                    @endunless
+
+                    {{-- Penggajian & Slip Gaji - Visible to CEO (for reports) and others based on permissions --}}
+                    @if(Auth::user()->hasRole('ceo') && Auth::user()->hasPermission('reports.view')) {{-- CEO specific link to reports index --}}
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('reports.index') || request()->routeIs('reports.financial') || request()->routeIs('reports.hr') || request()->routeIs('reports.leaves') || request()->routeIs('payroll.reports') ? 'active' : '' }}" href="{{ route('reports.index') }}">
+                                <i class="fas fa-chart-bar me-2"></i>Laporan
+                            </a>
+                        </li>
+                    @elseif(!Auth::user()->hasRole('ceo'))
+                        @if(auth()->user()->hasPermission('payroll.view_all'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('payroll.index') || request()->routeIs('payroll.reports') ? 'active' : '' }}" href="{{ route('payroll.index') }}">
+                                <i class="fas fa-money-bill-wave me-2"></i>Penggajian
+                            </a>
+                        </li>
+                        @elseif(auth()->user()->hasPermission('payroll.view'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('payroll.slip*') ? 'active' : '' }}" href="{{ route('payroll.slip') }}">
+                                <i class="fas fa-receipt me-2"></i>Slip Gaji
+                            </a>
+                        </li>
+                        @endif
                     @endif
 
-                    <!-- Kantor Menu - Hanya untuk Admin/HR -->
-                    @if(auth()->user()->hasPermission('offices.view'))
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('offices*') ? 'active' : '' }}" href="{{ route('offices.index') }}">
-                            <i class="fas fa-building me-2"></i>Kantor
-                        </a>
-                    </li>
-                    @endif
+                    @unless(Auth::user()->hasRole('ceo'))
+                        @if(auth()->user()->hasPermission('salary_components.view'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('salary-components*') ? 'active' : '' }}" href="{{ route('salary-components.index') }}">
+                                <i class="fas fa-coins me-2"></i>Komponen Gaji
+                            </a>
+                        </li>
+                        @endif
+                    @endunless
 
-                    @if(auth()->user()->hasPermission('payroll.view_all'))
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('payroll*') ? 'active' : '' }}" href="{{ route('payroll.index') }}">
-                            <i class="fas fa-money-bill-wave me-2"></i>Penggajian
-                        </a>
-                    </li>
-                    @elseif(auth()->user()->hasPermission('payroll.view'))
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('payroll.slip*') ? 'active' : '' }}" href="{{ route('payroll.slip') }}">
-                            <i class="fas fa-receipt me-2"></i>Slip Gaji
-                        </a>
-                    </li>
-                    @endif
-
-                    @if(auth()->user()->hasPermission('salary_components.view'))
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('salary-components*') ? 'active' : '' }}" href="{{ route('salary-components.index') }}">
-                            <i class="fas fa-coins me-2"></i>Komponen Gaji
-                        </a>
-                    </li>
-                    @endif
-
-
+                    {{-- Izin & Cuti - Visible to CEO and others --}}
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('permits*') ? 'active' : '' }}" href="{{ route('permits.index') }}">
                             <i class="fas fa-file-alt me-2"></i>Izin & Cuti
                         </a>
                     </li>
 
+                    @unless(Auth::user()->hasRole('ceo'))
                     <!-- Manajemen Lembur - Hanya untuk Admin/HRD -->
                     @if(auth()->user()->hasAnyRole(['Admin', 'HRD', 'HR']) || auth()->user()->hasPermission('overtime.manage'))
                     <li class="nav-item dropdown">
@@ -484,7 +501,9 @@
                         </ul>
                     </li>
                     @endif
+                    @endunless
 
+                    @unless(Auth::user()->hasRole('ceo'))
                     <!-- Demo Menu -->
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('demo*') ? 'active' : '' }}" href="{{ route('demo.features') }}">
@@ -498,6 +517,7 @@
                             <i class="fas fa-bug me-2"></i>Debug Permissions
                         </a>
                     </li>
+                    @endunless
                 @endauth
             </ul>
         </div>

@@ -200,19 +200,23 @@
 <script>
 // Monthly Trends Chart
 const monthlyCtx = document.getElementById('monthlyTrendsChart').getContext('2d');
+const monthlyTrendsData = @json($monthly_trends ?? []);
+
 new Chart(monthlyCtx, {
     type: 'line',
     data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        labels: monthlyTrendsData.map(item => item.month),
         datasets: [{
-            label: 'Kehadiran (%)',
-            data: [85, 88, 92, 89, 94, 91],
-            borderColor: 'rgb(75, 192, 192)',
+            label: 'Total Karyawan',
+            data: monthlyTrendsData.map(item => item.employees),
+            borderColor: 'rgb(54, 162, 235)', // Blue
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
             tension: 0.1
         }, {
-            label: 'Produktivitas',
-            data: [78, 82, 85, 88, 90, 87],
-            borderColor: 'rgb(255, 99, 132)',
+            label: 'Total Kehadiran',
+            data: monthlyTrendsData.map(item => item.attendance),
+            borderColor: 'rgb(75, 192, 192)', // Teal
+            backgroundColor: 'rgba(75, 192, 192, 0.5)',
             tension: 0.1
         }]
     },
@@ -247,3 +251,53 @@ new Chart(deptCtx, {
 });
 </script>
 @endpush
+
+<!-- Akses Laporan Lengkap Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light border-bottom">
+                <h5 class="mb-0"><i class="fas fa-folder-open me-2 text-primary"></i>Akses Laporan Lengkap</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <a href="{{ route('reports.hr') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-users me-2 text-info"></i>
+                            Laporan Sumber Daya Manusia (HR)
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                    <a href="{{ route('reports.attendance') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-clock me-2 text-success"></i>
+                            Laporan Absensi Karyawan
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                    <a href="{{ route('reports.financial') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-file-invoice-dollar me-2 text-danger"></i>
+                            Laporan Keuangan
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                    <a href="{{ route('payroll.reports') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-money-check-alt me-2 text-warning"></i>
+                            Laporan Penggajian
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                    <a href="{{ route('reports.leaves') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-calendar-alt me-2 text-purple"></i>
+                            Laporan Cuti Karyawan
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

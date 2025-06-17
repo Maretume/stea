@@ -74,6 +74,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'reports.view', 'display_name' => 'View Reports', 'module' => 'reports'],
             ['name' => 'reports.financial', 'display_name' => 'View Financial Reports', 'module' => 'reports'],
             ['name' => 'reports.hr', 'display_name' => 'View HR Reports', 'module' => 'reports'],
+            ['name' => 'reports.leaves', 'display_name' => 'View Leaves Reports', 'module' => 'reports'],
             ['name' => 'reports.export', 'display_name' => 'Export Reports', 'module' => 'reports'],
             
             // Settings

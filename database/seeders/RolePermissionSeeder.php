@@ -17,7 +17,19 @@ class RolePermissionSeeder extends Seeder
 
         // CEO - Full Access
         $ceo = Role::where('name', 'ceo')->first();
-        $ceo->permissions()->attach($allPermissions->pluck('id'));
+        $ceoPermissions = Permission::whereIn('name', [
+            'dashboard.view',
+            'reports.view',
+            'reports.financial',
+            'reports.hr',
+            'reports.export',
+            'attendance.reports', // Specific report permission
+            'payroll.reports',    // Specific report permission
+            'reports.leaves',     // New permission for leaves report
+        ])->get();
+        if ($ceo && $ceoPermissions->isNotEmpty()) {
+            $ceo->permissions()->sync($ceoPermissions->pluck('id')); // Use sync to remove old permissions and add new ones
+        }
 
         // CFO - Financial Focus
         $cfo = Role::where('name', 'cfo')->first();
