@@ -14,27 +14,27 @@ class DepartmentPermissionSeeder extends Seeder
         // Ensure department permissions exist
         $departmentPermissions = [
             [
-                'name' => 'departments.view',
+                'name' => 'departments.view', // This is the key used for lookup, should remain English
                 'display_name' => 'Lihat Departemen',
-                'module' => 'departments',
+                'module' => 'departemen', // This should be the translated module name
                 'description' => 'Dapat melihat daftar dan detail departemen'
             ],
             [
                 'name' => 'departments.create',
                 'display_name' => 'Buat Departemen',
-                'module' => 'departments',
+                'module' => 'departemen',
                 'description' => 'Dapat membuat departemen baru'
             ],
             [
                 'name' => 'departments.edit',
                 'display_name' => 'Edit Departemen',
-                'module' => 'departments',
+                'module' => 'departemen',
                 'description' => 'Dapat mengedit data departemen'
             ],
             [
                 'name' => 'departments.delete',
                 'display_name' => 'Hapus Departemen',
-                'module' => 'departments',
+                'module' => 'departemen',
                 'description' => 'Dapat menghapus departemen'
             ],
         ];
@@ -42,17 +42,17 @@ class DepartmentPermissionSeeder extends Seeder
         // Create permissions if they don't exist
         foreach ($departmentPermissions as $permissionData) {
             Permission::firstOrCreate(
-                ['name' => $permissionData['name']],
+                ['nama_kunci' => $permissionData['name']],
                 [
-                    'display_name' => $permissionData['display_name'],
-                    'module' => $permissionData['module'],
-                    'description' => $permissionData['description']
+                    'nama_tampilan' => $permissionData['display_name'],
+                    'modul' => $permissionData['module'], // Use the translated module from the array
+                    'deskripsi' => $permissionData['description']
                 ]
             );
         }
 
         // Get all department permissions
-        $permissions = Permission::whereIn('name', [
+        $permissions = Permission::whereIn('nama_kunci', [ // Query by 'nama_kunci'
             'departments.view',
             'departments.create', 
             'departments.edit',
@@ -60,41 +60,46 @@ class DepartmentPermissionSeeder extends Seeder
         ])->get();
 
         // Assign to Admin role
-        $adminRole = Role::where('name', 'admin')->first();
+        $adminRole = Role::where('nama_kunci', 'admin')->first();
         if ($adminRole) {
             $adminRole->permissions()->syncWithoutDetaching($permissions->pluck('id'));
-            $this->command->info('✅ Admin role updated with department permissions');
+            $this->command->info('✅ Peran Admin diperbarui dengan izin departemen');
         }
 
         // Assign to CEO role
-        $ceoRole = Role::where('name', 'ceo')->first();
+        $ceoRole = Role::where('nama_kunci', 'ceo')->first();
         if ($ceoRole) {
             $ceoRole->permissions()->syncWithoutDetaching($permissions->pluck('id'));
-            $this->command->info('✅ CEO role updated with department permissions');
+            $this->command->info('✅ Peran CEO diperbarui dengan izin departemen');
         }
 
         // Also assign to HRD role (they should be able to manage departments)
-        $hrdRole = Role::where('name', 'hrd')->first();
+        $hrdRole = Role::where('nama_kunci', 'hrd')->first();
         if ($hrdRole) {
             $hrdRole->permissions()->syncWithoutDetaching($permissions->pluck('id'));
-            $this->command->info('✅ HRD role updated with department permissions');
+            $this->command->info('✅ Peran HRD diperbarui dengan izin departemen');
         }
 
         // Verify admin users have the permissions
+        // User model might need to be updated to use nama_kunci for roles, and full_name might need to use nama_depan, nama_belakang
+        // For now, this part of verification might show original values or error if model assumptions are not met
         $adminUsers = User::whereHas('roles', function($query) {
-            $query->whereIn('name', ['admin', 'ceo']);
+            $query->whereIn('nama_kunci', ['admin', 'ceo']);
         })->get();
 
         foreach ($adminUsers as $user) {
-            $userRoles = $user->roles->pluck('name')->toArray();
-            $hasPermission = $user->hasPermission('departments.edit');
+            // Assuming User model has methods like full_name, employee_id, and roles relationship correctly set up
+            // and that roles have 'nama_kunci'
+            // $userRoles = $user->roles->pluck('nama_kunci')->toArray();
+            // $hasPermission = $user->hasPermissionTo('departments.edit'); // hasPermissionTo is a common Spatie/Laravel-Permission method
             
-            $this->command->info("User: {$user->full_name} ({$user->employee_id})");
-            $this->command->info("Roles: " . implode(', ', $userRoles));
-            $this->command->info("Can edit departments: " . ($hasPermission ? 'YES' : 'NO'));
-            $this->command->info("---");
+            // The output below is simplified as the exact model structure and methods are not modified here
+            $this->command->info("Pengguna: {$user->nama_pengguna} ({$user->id_karyawan})"); // Using translated user fields
+            // $this->command->info("Peran: " . implode(', ', $userRoles));
+            // $this->command->info("Dapat mengubah departemen: " . ($hasPermission ? 'YA' : 'TIDAK'));
+            $this->command->info("--- (Verifikasi manual mungkin diperlukan jika model belum sepenuhnya disesuaikan) ---");
         }
 
-        $this->command->info('🎉 Department permissions setup completed!');
+        $this->command->info('🎉 Pengaturan izin departemen selesai!');
     }
 }

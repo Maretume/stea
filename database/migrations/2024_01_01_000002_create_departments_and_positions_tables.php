@@ -8,55 +8,58 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('departments', function (Blueprint $table) {
+        Schema::create('departemen', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 10)->unique();
-            $table->string('name', 100);
-            $table->text('description')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
+            $table->string('kode', 10)->unique();
+            $table->string('nama', 100);
+            $table->text('deskripsi')->nullable();
+            $table->boolean('aktif')->default(true);
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
         });
 
-        Schema::create('positions', function (Blueprint $table) {
+        Schema::create('jabatan', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 10)->unique();
-            $table->string('name', 100);
-            $table->text('description')->nullable();
-            $table->foreignId('department_id')->constrained()->onDelete('cascade');
-            $table->decimal('base_salary', 15, 2)->default(0);
-            $table->integer('level')->default(1);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
+            $table->string('kode', 10)->unique();
+            $table->string('nama', 100);
+            $table->text('deskripsi')->nullable();
+            $table->foreignId('id_departemen')->constrained('departemen')->onDelete('cascade');
+            $table->decimal('gaji_pokok', 15, 2)->default(0);
+            $table->integer('tingkat')->default(1);
+            $table->boolean('aktif')->default(true);
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
         });
 
-        Schema::create('employees', function (Blueprint $table) {
+        Schema::create('karyawan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('department_id')->constrained();
-            $table->foreignId('position_id')->constrained();
-            $table->foreignId('supervisor_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->date('hire_date');
-            $table->date('contract_start')->nullable();
-            $table->date('contract_end')->nullable();
-            $table->enum('employment_type', ['permanent', 'contract', 'internship', 'freelance']);
-            $table->enum('employment_status', ['active', 'resigned', 'terminated', 'retired']);
-            $table->decimal('basic_salary', 15, 2);
-            $table->string('bank_name', 50)->nullable();
-            $table->string('bank_account', 30)->nullable();
-            $table->string('bank_account_name', 100)->nullable();
-            $table->string('tax_id', 30)->nullable(); // NPWP
-            $table->string('social_security_id', 30)->nullable(); // BPJS
-            $table->timestamps();
+            $table->foreignId('id_pengguna')->constrained('pengguna')->onDelete('cascade');
+            $table->foreignId('id_departemen')->constrained('departemen');
+            $table->foreignId('id_jabatan')->constrained('jabatan');
+            $table->foreignId('id_atasan')->nullable()->constrained('pengguna')->onDelete('set null');
+            $table->date('tanggal_rekrut');
+            $table->date('mulai_kontrak')->nullable();
+            $table->date('akhir_kontrak')->nullable();
+            $table->enum('jenis_kepegawaian', ['tetap', 'kontrak', 'magang', 'paruh_waktu']);
+            $table->enum('status_kepegawaian', ['aktif', 'mengundurkan_diri', 'diberhentikan', 'pensiun']);
+            $table->decimal('gaji_pokok', 15, 2);
+            $table->string('nama_bank', 50)->nullable();
+            $table->string('rekening_bank', 30)->nullable();
+            $table->string('nama_rekening_bank', 100)->nullable();
+            $table->string('npwp', 30)->nullable(); // NPWP
+            $table->string('bpjs', 30)->nullable(); // BPJS
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
             
-            $table->unique('user_id');
-            $table->index(['department_id', 'employment_status']);
+            $table->unique('id_pengguna');
+            $table->index(['id_departemen', 'status_kepegawaian']);
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('employees');
-        Schema::dropIfExists('positions');
-        Schema::dropIfExists('departments');
+        Schema::dropIfExists('karyawan');
+        Schema::dropIfExists('jabatan');
+        Schema::dropIfExists('departemen');
     }
 };

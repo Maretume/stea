@@ -9,39 +9,41 @@ class NotificationSetting extends Model
 {
     use HasFactory;
 
+    protected $table = 'pengaturan_pemberitahuan';
+
     protected $fillable = [
-        'user_id',
-        'type',
-        'event',
-        'enabled',
-        'settings',
+        'id_pengguna', // user_id
+        'tipe', // type
+        'acara', // event
+        'aktif', // enabled
+        'pengaturan_tambahan', // settings
     ];
 
     protected $casts = [
-        'enabled' => 'boolean',
-        'settings' => 'array',
+        'aktif' => 'boolean', // enabled
+        'pengaturan_tambahan' => 'array', // settings
     ];
 
     // Relationships
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'id_pengguna');
     }
 
     // Scopes
-    public function scopeEnabled($query)
+    public function scopeEnabled($query) // Name kept as is, logic changed
     {
-        return $query->where('enabled', true);
+        return $query->where('aktif', true); // enabled -> aktif
     }
 
-    public function scopeByType($query, $type)
+    public function scopeByType($query, $type) // Name kept as is, logic changed
     {
-        return $query->where('type', $type);
+        return $query->where('tipe', $type); // type -> tipe
     }
 
-    public function scopeByEvent($query, $event)
+    public function scopeByEvent($query, $event) // Name kept as is, logic changed
     {
-        return $query->where('event', $event);
+        return $query->where('acara', $event); // event -> acara
     }
 
     // Helper methods

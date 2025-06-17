@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('payrolls', function (Blueprint $table) {
-            $table->unsignedBigInteger('approved_by')->nullable()->after('status');
-            $table->timestamp('approved_at')->nullable()->after('approved_by');
+        Schema::table('penggajian', function (Blueprint $table) {
+            $table->unsignedBigInteger('disetujui_oleh_payroll')->nullable()->after('status');
+            $table->timestamp('disetujui_pada_payroll')->nullable()->after('disetujui_oleh_payroll');
             
-            $table->foreign('approved_by')->references('id')->on('users')->onDelete('set null');
+            $table->foreign('disetujui_oleh_payroll')->references('id')->on('pengguna')->onDelete('set null');
         });
     }
 
@@ -24,9 +24,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('payrolls', function (Blueprint $table) {
-            $table->dropForeign(['approved_by']);
-            $table->dropColumn(['approved_by', 'approved_at']);
+        Schema::table('penggajian', function (Blueprint $table) {
+            $table->dropForeign(['disetujui_oleh_payroll']);
+            $table->dropColumn(['disetujui_oleh_payroll', 'disetujui_pada_payroll']);
         });
     }
 };

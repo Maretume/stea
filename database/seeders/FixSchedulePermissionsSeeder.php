@@ -11,14 +11,14 @@ class FixSchedulePermissionsSeeder extends Seeder
     public function run()
     {
         // Get all roles
-        $adminRole = Role::where('name', 'admin')->first();
-        $hrRole = Role::where('name', 'hr')->first();
-        $hrdRole = Role::where('name', 'hrd')->first();
-        $ceoRole = Role::where('name', 'ceo')->first();
-        $managerRole = Role::where('name', 'manager')->first();
-        $karyawanRole = Role::where('name', 'karyawan')->first();
+        $adminRole = Role::where('nama_kunci', 'admin')->first();
+        $hrRole = Role::where('nama_kunci', 'hr')->first();
+        $hrdRole = Role::where('nama_kunci', 'hrd')->first();
+        $ceoRole = Role::where('nama_kunci', 'ceo')->first();
+        $managerRole = Role::where('nama_kunci', 'manager')->first();
+        $karyawanRole = Role::where('nama_kunci', 'karyawan')->first();
 
-        // Define permissions for each role
+        // Define permissions for each role (permission names are keys, remain English)
         $adminPermissions = [
             'schedules.view', 'schedules.create', 'schedules.edit', 'schedules.delete', 'schedules.approve',
             'offices.view', 'offices.create', 'offices.edit', 'offices.delete',
@@ -42,41 +42,41 @@ class FixSchedulePermissionsSeeder extends Seeder
 
         // Apply permissions to roles
         if ($adminRole) {
-            $permissions = Permission::whereIn('name', $adminPermissions)->get();
+            $permissions = Permission::whereIn('nama_kunci', $adminPermissions)->get();
             $adminRole->permissions()->sync($permissions);
-            $this->command->info("Updated admin permissions");
+            $this->command->info("Izin admin diperbarui");
         }
 
         if ($hrRole) {
-            $permissions = Permission::whereIn('name', $hrPermissions)->get();
+            $permissions = Permission::whereIn('nama_kunci', $hrPermissions)->get();
             $hrRole->permissions()->sync($permissions);
-            $this->command->info("Updated HR permissions");
+            $this->command->info("Izin HR diperbarui");
         }
 
         if ($hrdRole) {
-            $permissions = Permission::whereIn('name', $hrPermissions)->get();
+            $permissions = Permission::whereIn('nama_kunci', $hrPermissions)->get(); // HRD gets same as HR
             $hrdRole->permissions()->sync($permissions);
-            $this->command->info("Updated HRD permissions");
+            $this->command->info("Izin HRD diperbarui");
         }
 
         if ($ceoRole) {
-            $permissions = Permission::whereIn('name', $adminPermissions)->get();
+            $permissions = Permission::whereIn('nama_kunci', $adminPermissions)->get(); // CEO gets same as Admin
             $ceoRole->permissions()->sync($permissions);
-            $this->command->info("Updated CEO permissions");
+            $this->command->info("Izin CEO diperbarui");
         }
 
         if ($managerRole) {
-            $permissions = Permission::whereIn('name', $managerPermissions)->get();
+            $permissions = Permission::whereIn('nama_kunci', $managerPermissions)->get();
             $managerRole->permissions()->sync($permissions);
-            $this->command->info("Updated Manager permissions");
+            $this->command->info("Izin Manajer diperbarui");
         }
 
         if ($karyawanRole) {
-            $permissions = Permission::whereIn('name', $karyawanPermissions)->get();
+            $permissions = Permission::whereIn('nama_kunci', $karyawanPermissions)->get();
             $karyawanRole->permissions()->sync($permissions);
-            $this->command->info("Updated Karyawan permissions - only view schedules");
+            $this->command->info("Izin Karyawan diperbarui - hanya lihat jadwal");
         }
 
-        $this->command->info("Schedule permissions have been properly configured!");
+        $this->command->info("Izin jadwal telah dikonfigurasi dengan benar!");
     }
 }

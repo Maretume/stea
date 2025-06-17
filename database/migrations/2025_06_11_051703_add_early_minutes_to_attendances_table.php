@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->integer('early_minutes')->default(0)->after('late_minutes');
+        Schema::table('absensi', function (Blueprint $table) {
+            $table->integer('menit_masuk_awal')->default(0)->after('menit_terlambat');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->dropColumn('early_minutes');
+        Schema::table('absensi', function (Blueprint $table) {
+            $table->dropColumn('menit_masuk_awal');
         });
     }
 };

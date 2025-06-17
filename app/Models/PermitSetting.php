@@ -9,41 +9,43 @@ class PermitSetting extends Model
 {
     use HasFactory;
 
+    protected $table = 'pengaturan_izin_kerja';
+
     protected $fillable = [
-        'key',
-        'value',
-        'type',
-        'description',
+        'kunci', // key
+        'nilai', // value
+        'tipe', // type
+        'deskripsi', // description
     ];
 
     // Helper methods to get typed values
     public function getTypedValue()
     {
-        switch ($this->type) {
+        switch ($this->tipe) { // type -> tipe
             case 'boolean':
-                return filter_var($this->value, FILTER_VALIDATE_BOOLEAN);
+                return filter_var($this->nilai, FILTER_VALIDATE_BOOLEAN); // value -> nilai
             case 'integer':
-                return (int) $this->value;
+                return (int) $this->nilai; // value -> nilai
             case 'float':
-                return (float) $this->value;
+                return (float) $this->nilai; // value -> nilai
             case 'json':
-                return json_decode($this->value, true);
+                return json_decode($this->nilai, true); // value -> nilai
             default:
-                return $this->value;
+                return $this->nilai; // value -> nilai
         }
     }
 
     public function setTypedValue($value)
     {
-        switch ($this->type) {
+        switch ($this->tipe) { // type -> tipe
             case 'boolean':
-                $this->value = $value ? '1' : '0';
+                $this->nilai = $value ? '1' : '0'; // value -> nilai
                 break;
             case 'json':
-                $this->value = json_encode($value);
+                $this->nilai = json_encode($value); // value -> nilai
                 break;
             default:
-                $this->value = (string) $value;
+                $this->nilai = (string) $value; // value -> nilai
         }
 
         return $this;
@@ -52,7 +54,7 @@ class PermitSetting extends Model
     // Static helper methods
     public static function get($key, $default = null)
     {
-        $setting = static::where('key', $key)->first();
+        $setting = static::where('kunci', $key)->first(); // key -> kunci
         
         if (!$setting) {
             return $default;
@@ -63,9 +65,9 @@ class PermitSetting extends Model
 
     public static function set($key, $value, $type = 'string', $description = null)
     {
-        $setting = static::firstOrNew(['key' => $key]);
-        $setting->type = $type;
-        $setting->description = $description;
+        $setting = static::firstOrNew(['kunci' => $key]); // key -> kunci
+        $setting->tipe = $type; // type -> tipe
+        $setting->deskripsi = $description; // description -> deskripsi
         $setting->setTypedValue($value);
         $setting->save();
 
@@ -74,11 +76,11 @@ class PermitSetting extends Model
 
     public static function getMultiple(array $keys)
     {
-        $settings = static::whereIn('key', $keys)->get();
+        $settings = static::whereIn('kunci', $keys)->get(); // key -> kunci
         $result = [];
 
         foreach ($settings as $setting) {
-            $result[$setting->key] = $setting->getTypedValue();
+            $result[$setting->kunci] = $setting->getTypedValue(); // key -> kunci
         }
 
         // Fill missing keys with null

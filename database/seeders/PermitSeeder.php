@@ -17,49 +17,49 @@ class PermitSeeder extends Seeder
         // Create Permit Types
         $permitTypes = [
             [
-                'name' => 'Tukar Hari',
-                'code' => 'DAY_EXCHANGE',
-                'description' => 'Pertukaran hari kerja dengan hari libur',
-                'requires_approval' => true,
-                'affects_attendance' => true,
-                'is_active' => true,
-                'sort_order' => 1,
+                'nama' => 'Tukar Hari',
+                'kode' => 'DAY_EXCHANGE',
+                'deskripsi' => 'Pertukaran hari kerja dengan hari libur',
+                'perlu_persetujuan' => true,
+                'pengaruhi_absensi' => true,
+                'aktif' => true,
+                'urutan' => 1,
             ],
             [
-                'name' => 'Lembur',
-                'code' => 'OVERTIME',
-                'description' => 'Kerja lembur di luar jam kerja normal',
-                'requires_approval' => true,
-                'affects_attendance' => false,
-                'is_active' => true,
-                'sort_order' => 2,
+                'nama' => 'Lembur',
+                'kode' => 'OVERTIME',
+                'deskripsi' => 'Kerja lembur di luar jam kerja normal',
+                'perlu_persetujuan' => true,
+                'pengaruhi_absensi' => false,
+                'aktif' => true,
+                'urutan' => 2,
             ],
             [
-                'name' => 'Izin Keluar',
-                'code' => 'LEAVE_EARLY',
-                'description' => 'Izin keluar sebelum jam kerja selesai',
-                'requires_approval' => true,
-                'affects_attendance' => true,
-                'is_active' => true,
-                'sort_order' => 3,
+                'nama' => 'Izin Keluar',
+                'kode' => 'LEAVE_EARLY',
+                'deskripsi' => 'Izin keluar sebelum jam kerja selesai',
+                'perlu_persetujuan' => true,
+                'pengaruhi_absensi' => true,
+                'aktif' => true,
+                'urutan' => 3,
             ],
             [
-                'name' => 'Izin Datang Terlambat',
-                'code' => 'LATE_ARRIVAL',
-                'description' => 'Izin datang terlambat dengan alasan tertentu',
-                'requires_approval' => true,
-                'affects_attendance' => true,
-                'is_active' => true,
-                'sort_order' => 4,
+                'nama' => 'Izin Datang Terlambat',
+                'kode' => 'LATE_ARRIVAL',
+                'deskripsi' => 'Izin datang terlambat dengan alasan tertentu',
+                'perlu_persetujuan' => true,
+                'pengaruhi_absensi' => true,
+                'aktif' => true,
+                'urutan' => 4,
             ],
             [
-                'name' => 'Izin Tidak Masuk',
-                'code' => 'ABSENT',
-                'description' => 'Izin tidak masuk kerja (bukan cuti)',
-                'requires_approval' => true,
-                'affects_attendance' => true,
-                'is_active' => true,
-                'sort_order' => 5,
+                'nama' => 'Izin Tidak Masuk',
+                'kode' => 'ABSENT',
+                'deskripsi' => 'Izin tidak masuk kerja (bukan cuti)',
+                'perlu_persetujuan' => true,
+                'pengaruhi_absensi' => true,
+                'aktif' => true,
+                'urutan' => 5,
             ],
         ];
 
@@ -68,77 +68,75 @@ class PermitSeeder extends Seeder
         }
 
         // Get sample users
-        $employees = User::whereHas('employee')->take(5)->get();
+        $employees = User::whereHas('employee')->take(5)->get(); // Assuming 'employee' relation exists
         
         if ($employees->count() > 0) {
-
-
             // Create sample Overtime requests
             foreach ($employees->take(4) as $employee) {
                 OvertimeRequest::create([
-                    'user_id' => $employee->id,
-                    'overtime_date' => now()->addDays(rand(1, 7)),
-                    'start_time' => '17:00',
-                    'end_time' => '20:00',
-                    'planned_hours' => 3,
-                    'work_description' => 'Menyelesaikan laporan bulanan dan persiapan presentasi untuk klien.',
-                    'reason' => 'Deadline laporan yang mendesak dan perlu diselesaikan segera.',
-                    'status' => 'pending',
+                    'id_pengguna' => $employee->id,
+                    'tanggal_lembur' => now()->addDays(rand(1, 7)),
+                    'waktu_mulai' => '17:00',
+                    'waktu_selesai' => '20:00',
+                    'jam_direncanakan' => 3,
+                    'deskripsi_pekerjaan' => 'Menyelesaikan laporan bulanan dan persiapan presentasi untuk klien.',
+                    'alasan' => 'Deadline laporan yang mendesak dan perlu diselesaikan segera.',
+                    'status' => 'menunggu', // pending
                 ]);
 
                 OvertimeRequest::create([
-                    'user_id' => $employee->id,
-                    'overtime_date' => now()->subDays(rand(1, 7)),
-                    'start_time' => '17:30',
-                    'end_time' => '21:30',
-                    'planned_hours' => 4,
-                    'actual_hours' => 4,
-                    'work_description' => 'Maintenance server dan backup database.',
-                    'reason' => 'Maintenance rutin yang harus dilakukan di luar jam kerja.',
-                    'status' => 'completed',
-                    'approved_by' => User::whereHas('roles', function($q) {
-                        $q->where('name', 'hrd');
+                    'id_pengguna' => $employee->id,
+                    'tanggal_lembur' => now()->subDays(rand(1, 7)),
+                    'waktu_mulai' => '17:30',
+                    'waktu_selesai' => '21:30',
+                    'jam_direncanakan' => 4,
+                    'jam_aktual' => 4,
+                    'deskripsi_pekerjaan' => 'Maintenance server dan backup database.',
+                    'alasan' => 'Maintenance rutin yang harus dilakukan di luar jam kerja.',
+                    'status' => 'selesai', // completed
+                    'disetujui_oleh' => User::whereHas('roles', function($q) {
+                        $q->where('nama_kunci', 'hrd'); // name -> nama_kunci
                     })->first()->id ?? null,
-                    'approved_at' => now()->subDays(rand(1, 5)),
-                    'approval_notes' => 'Disetujui. Pastikan dokumentasi maintenance lengkap.',
-                    'is_completed' => true,
-                    'completed_at' => now()->subDays(rand(1, 3)),
-                    'overtime_rate' => 25000, // Rp 25,000 per hour
-                    'overtime_amount' => 100000, // 4 hours * Rp 25,000
+                    'disetujui_pada' => now()->subDays(rand(1, 5)),
+                    'catatan_persetujuan' => 'Disetujui. Pastikan dokumentasi maintenance lengkap.',
+                    'apakah_selesai' => true,
+                    'selesai_pada' => now()->subDays(rand(1, 3)),
+                    'tarif_lembur' => 25000,
+                    'jumlah_lembur' => 100000,
                 ]);
             }
 
             // Create sample Leave requests
             foreach ($employees as $employee) {
                 LeaveRequest::create([
-                    'user_id' => $employee->id,
-                    'leave_type_id' => 1, // Cuti Tahunan
-                    'start_date' => now()->addDays(rand(10, 30)),
-                    'end_date' => now()->addDays(rand(31, 35)),
-                    'total_days' => 3,
-                    'reason' => 'Liburan keluarga yang sudah direncanakan sejak lama.',
-                    'notes' => 'Sudah koordinasi dengan tim untuk backup pekerjaan.',
-                    'emergency_contact' => 'Istri - Sarah',
-                    'emergency_phone' => '081234567890',
-                    'work_handover' => 'Pekerjaan harian sudah didelegasikan ke rekan tim. Laporan mingguan akan diselesaikan sebelum cuti.',
-                    'status' => 'pending',
+                    'id_pengguna' => $employee->id,
+                    'id_jenis_cuti' => 1, // Assuming ID 1 for Cuti Tahunan from LeaveTypeSeeder
+                    'tanggal_mulai' => now()->addDays(rand(10, 30)),
+                    'tanggal_selesai' => now()->addDays(rand(31, 35)),
+                    'total_hari' => 3,
+                    'alasan' => 'Liburan keluarga yang sudah direncanakan sejak lama.',
+                    'catatan' => 'Sudah koordinasi dengan tim untuk backup pekerjaan.',
+                    'kontak_darurat' => 'Istri - Sarah',
+                    'telepon_darurat' => '081234567890',
+                    'serah_terima_pekerjaan' => 'Pekerjaan harian sudah didelegasikan ke rekan tim. Laporan mingguan akan diselesaikan sebelum cuti.',
+                    'status' => 'menunggu', // pending
                 ]);
 
                 LeaveRequest::create([
-                    'user_id' => $employee->id,
-                    'leave_type_id' => 2, // Cuti Sakit
-                    'start_date' => now()->subDays(rand(5, 10)),
-                    'end_date' => now()->subDays(rand(3, 4)),
-                    'total_days' => 2,
-                    'reason' => 'Sakit demam dan flu yang cukup parah.',
-                    'notes' => 'Sudah periksa ke dokter dan disarankan istirahat total.',
-                    'status' => 'approved',
-                    'approved_by' => User::whereHas('roles', function($q) {
-                        $q->where('name', 'hrd');
+                    'id_pengguna' => $employee->id,
+                    'id_jenis_cuti' => 2, // Assuming ID 2 for Cuti Sakit
+                    'tanggal_mulai' => now()->subDays(rand(5, 10)),
+                    'tanggal_selesai' => now()->subDays(rand(3, 4)),
+                    'total_hari' => 2,
+                    'alasan' => 'Sakit demam dan flu yang cukup parah.',
+                    'catatan' => 'Sudah periksa ke dokter dan disarankan istirahat total.',
+                    'status' => 'disetujui', // approved
+                    'disetujui_oleh' => User::whereHas('roles', function($q) {
+                        $q->where('nama_kunci', 'hrd'); // name -> nama_kunci
                     })->first()->id ?? null,
-                    'approved_at' => now()->subDays(rand(1, 3)),
-                    'approval_notes' => 'Disetujui. Harap istirahat yang cukup dan segera sembuh.',
-                    'attachments' => [
+                    'disetujui_pada' => now()->subDays(rand(1, 3)),
+                    'catatan_persetujuan' => 'Disetujui. Harap istirahat yang cukup dan segera sembuh.',
+                    'lampiran' => [
                         [
                             'filename' => 'surat_dokter_' . time() . '.pdf',
                             'original_name' => 'Surat Keterangan Dokter.pdf',
@@ -150,19 +148,19 @@ class PermitSeeder extends Seeder
 
                 // Half day leave
                 LeaveRequest::create([
-                    'user_id' => $employee->id,
-                    'leave_type_id' => 1, // Cuti Tahunan
-                    'start_date' => now()->addDays(rand(5, 15)),
-                    'end_date' => now()->addDays(rand(5, 15)),
-                    'total_days' => 0.5,
-                    'reason' => 'Ada keperluan keluarga yang mendesak.',
-                    'status' => 'pending',
-                    'is_half_day' => true,
-                    'half_day_type' => 'afternoon',
+                    'id_pengguna' => $employee->id,
+                    'id_jenis_cuti' => 1, // Cuti Tahunan
+                    'tanggal_mulai' => now()->addDays(rand(5, 15)),
+                    'tanggal_selesai' => now()->addDays(rand(5, 15)),
+                    'total_hari' => 0.5, // total_days is numeric
+                    'alasan' => 'Ada keperluan keluarga yang mendesak.',
+                    'status' => 'menunggu', // pending
+                    'setengah_hari' => true,
+                    'tipe_setengah_hari' => 'siang', // afternoon -> siang
                 ]);
             }
         }
 
-        $this->command->info('Permit data seeded successfully!');
+        $this->command->info('Data izin berhasil di-seed!');
     }
 }

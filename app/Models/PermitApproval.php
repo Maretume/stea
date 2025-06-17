@@ -9,51 +9,54 @@ class PermitApproval extends Model
 {
     use HasFactory;
 
+    protected $table = 'persetujuan_izin_kerja';
+
     protected $fillable = [
-        'approvable_type',
-        'approvable_id',
-        'approver_id',
-        'approval_level',
+        'tipe_persetujuan', // approvable_type
+        'id_persetujuan', // approvable_id
+        'id_penyetuju', // approver_id
+        'tingkat_persetujuan', // approval_level
         'status',
-        'approved_at',
-        'notes',
+        'disetujui_pada', // approved_at
+        'catatan', // notes
     ];
 
     protected $casts = [
-        'approved_at' => 'datetime',
+        'disetujui_pada' => 'datetime', // approved_at
     ];
 
     // Polymorphic relationship
     public function approvable()
     {
-        return $this->morphTo();
+        // Using translated type and id column names for the morphTo relationship
+        return $this->morphTo(null, 'tipe_persetujuan', 'id_persetujuan');
     }
 
     // Relationships
     public function approver()
     {
-        return $this->belongsTo(User::class, 'approver_id');
+        return $this->belongsTo(User::class, 'id_penyetuju'); // approver_id -> id_penyetuju
     }
 
     // Scopes
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', 'menunggu'); // pending -> menunggu
     }
 
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where('status', 'disetujui'); // approved -> disetujui
     }
 
     public function scopeRejected($query)
     {
-        return $query->where('status', 'rejected');
+        return $query->where('status', 'ditoLak'); // rejected -> ditoLak
     }
 
     public function scopeByApprover($query, $approverId)
     {
-        return $query->where('approver_id', $approverId);
+        return $query->where('id_penyetuju', $approverId); // approver_id -> id_penyetuju
     }
 
     public function scopeByLevel($query, $level)

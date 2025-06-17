@@ -17,63 +17,66 @@ class AdminSeeder extends Seeder
     {
         // Create admin role if not exists
         $adminRole = Role::firstOrCreate([
-            'name' => 'admin'
+            'nama_kunci' => 'admin' // name -> nama_kunci
         ], [
-            'display_name' => 'System Administrator',
-            'description' => 'Super admin dengan akses penuh ke semua sistem dan konfigurasi',
-            'is_active' => true,
+            'nama_tampilan' => 'Administrator Sistem',
+            'deskripsi' => 'Super admin dengan akses penuh ke semua sistem dan konfigurasi',
+            'aktif' => true, // is_active -> aktif (already done in Role model, but good to be explicit)
         ]);
 
         // Give admin role all permissions
         $allPermissions = Permission::all();
+        // Assuming Role model permissions() relation correctly uses peran_izin pivot
         $adminRole->permissions()->sync($allPermissions->pluck('id'));
 
         // Create admin user if not exists
+        // User model now uses translated keys, this part is already correct from previous steps.
         $adminUser = User::firstOrCreate([
-            'employee_id' => 'ADM001'
+            'id_karyawan' => 'ADM001'
         ], [
-            'username' => 'admin',
-            'email' => 'admin@stea.co.id',
-            'password' => Hash::make('admin123'),
-            'first_name' => 'System',
-            'last_name' => 'Administrator',
-            'phone' => '081234567888',
-            'gender' => 'male',
-            'birth_date' => '1980-01-01',
-            'address' => 'System Administrator',
-            'status' => 'active',
+            'nama_pengguna' => 'admin',
+            'surel' => 'admin@stea.co.id',
+            'kata_sandi' => Hash::make('admin123'),
+            'nama_depan' => 'Sistem',
+            'nama_belakang' => 'Administrator',
+            'telepon' => '081234567888',
+            'jenis_kelamin' => 'pria',
+            'tanggal_lahir' => '1980-01-01',
+            'alamat' => 'Administrator Sistem',
+            'status' => 'aktif',
         ]);
 
         // Assign admin role to user
+        // User model roles() relation uses 'pengguna_peran' and translated pivot keys
         $adminUser->roles()->syncWithoutDetaching([$adminRole->id => [
-            'assigned_at' => now(),
-            'is_active' => true,
+            'ditetapkan_pada' => now(), // assigned_at -> ditetapkan_pada
+            'aktif' => true,           // is_active -> aktif
         ]]);
 
         // Create employee record for admin
-        $itDepartment = Department::where('code', 'IT')->first();
-        $devPosition = Position::where('code', 'DEV')->first();
+        $itDepartment = Department::where('kode', 'IT')->first(); // code -> kode
+        $devPosition = Position::where('kode', 'DEV')->first();   // code -> kode
 
         if ($itDepartment && $devPosition) {
             Employee::firstOrCreate([
-                'user_id' => $adminUser->id
+                'id_pengguna' => $adminUser->id // user_id -> id_pengguna
             ], [
-                'department_id' => $itDepartment->id,
-                'position_id' => $devPosition->id,
-                'supervisor_id' => null, // Admin has no supervisor
-                'hire_date' => now()->subYears(5),
-                'employment_type' => 'permanent',
-                'employment_status' => 'active',
-                'basic_salary' => 25000000,
-                'bank_name' => 'Bank Mandiri',
-                'bank_account' => '1234567890001',
-                'bank_account_name' => $adminUser->full_name,
+                'id_departemen' => $itDepartment->id, // department_id -> id_departemen
+                'id_jabatan' => $devPosition->id,     // position_id -> id_jabatan
+                'id_atasan' => null,                 // supervisor_id -> id_atasan
+                'tanggal_rekrut' => now()->subYears(5), // hire_date -> tanggal_rekrut
+                'jenis_kepegawaian' => 'tetap',       // employment_type -> jenis_kepegawaian
+                'status_kepegawaian' => 'aktif',      // employment_status -> status_kepegawaian
+                'gaji_pokok' => 25000000,            // basic_salary -> gaji_pokok
+                'nama_bank' => 'Bank Mandiri',        // bank_name -> nama_bank
+                'rekening_bank' => '1234567890001',   // bank_account -> rekening_bank
+                'nama_rekening_bank' => $adminUser->nama_depan . ' ' . $adminUser->nama_belakang, // bank_account_name -> nama_rekening_bank
             ]);
         }
 
-        $this->command->info('Admin user created successfully!');
-        $this->command->info('Username: admin');
-        $this->command->info('Password: admin123');
+        $this->command->info('Pengguna admin berhasil dibuat!');
+        $this->command->info('Nama Pengguna: admin');
+        $this->command->info('Kata Sandi: admin123');
         $this->command->info('Email: admin@stea.co.id');
     }
 }

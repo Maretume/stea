@@ -9,18 +9,20 @@ class PushSubscription extends Model
 {
     use HasFactory;
 
+    protected $table = 'langganan_push';
+
     protected $fillable = [
-        'user_id',
+        'id_pengguna', // user_id
         'endpoint',
-        'public_key',
-        'auth_token',
-        'content_encoding',
+        'kunci_publik', // public_key
+        'token_autentikasi', // auth_token
+        'enkoding_konten', // content_encoding
     ];
 
     // Relationships
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'id_pengguna');
     }
 
     // Helper methods
@@ -29,10 +31,10 @@ class PushSubscription extends Model
         return [
             'endpoint' => $this->endpoint,
             'keys' => [
-                'p256dh' => $this->public_key,
-                'auth' => $this->auth_token,
+                'p256dh' => $this->kunci_publik, // public_key -> kunci_publik
+                'auth' => $this->token_autentikasi, // auth_token -> token_autentikasi
             ],
-            'contentEncoding' => $this->content_encoding ?? 'aesgcm',
+            'contentEncoding' => $this->enkoding_konten ?? 'aesgcm', // content_encoding -> enkoding_konten
         ];
     }
 }

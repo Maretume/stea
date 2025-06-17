@@ -17,56 +17,56 @@ return new class extends Migration
         // Create permissions if they don't exist
         $permissions = [
             // Schedule permissions
-            ['name' => 'schedules.view', 'display_name' => 'Lihat Jadwal', 'module' => 'schedules', 'description' => 'View schedules'],
-            ['name' => 'schedules.create', 'display_name' => 'Buat Jadwal', 'module' => 'schedules', 'description' => 'Create schedules'],
-            ['name' => 'schedules.edit', 'display_name' => 'Edit Jadwal', 'module' => 'schedules', 'description' => 'Edit schedules'],
-            ['name' => 'schedules.delete', 'display_name' => 'Hapus Jadwal', 'module' => 'schedules', 'description' => 'Delete schedules'],
-            ['name' => 'schedules.approve', 'display_name' => 'Setujui Jadwal', 'module' => 'schedules', 'description' => 'Approve schedules'],
+            ['nama_kunci' => 'schedules.view', 'nama_tampilan' => 'Lihat Jadwal', 'modul' => 'jadwal', 'deskripsi' => 'Melihat jadwal'],
+            ['nama_kunci' => 'schedules.create', 'nama_tampilan' => 'Buat Jadwal', 'modul' => 'jadwal', 'deskripsi' => 'Membuat jadwal'],
+            ['nama_kunci' => 'schedules.edit', 'nama_tampilan' => 'Ubah Jadwal', 'modul' => 'jadwal', 'deskripsi' => 'Mengubah jadwal'],
+            ['nama_kunci' => 'schedules.delete', 'nama_tampilan' => 'Hapus Jadwal', 'modul' => 'jadwal', 'deskripsi' => 'Menghapus jadwal'],
+            ['nama_kunci' => 'schedules.approve', 'nama_tampilan' => 'Setujui Jadwal', 'modul' => 'jadwal', 'deskripsi' => 'Menyetujui jadwal'],
 
             // Office permissions
-            ['name' => 'offices.view', 'display_name' => 'Lihat Kantor', 'module' => 'offices', 'description' => 'View offices'],
-            ['name' => 'offices.create', 'display_name' => 'Buat Kantor', 'module' => 'offices', 'description' => 'Create offices'],
-            ['name' => 'offices.edit', 'display_name' => 'Edit Kantor', 'module' => 'offices', 'description' => 'Edit offices'],
-            ['name' => 'offices.delete', 'display_name' => 'Hapus Kantor', 'module' => 'offices', 'description' => 'Delete offices'],
+            ['nama_kunci' => 'offices.view', 'nama_tampilan' => 'Lihat Kantor', 'modul' => 'kantor', 'deskripsi' => 'Melihat kantor'],
+            ['nama_kunci' => 'offices.create', 'nama_tampilan' => 'Buat Kantor', 'modul' => 'kantor', 'deskripsi' => 'Membuat kantor'],
+            ['nama_kunci' => 'offices.edit', 'nama_tampilan' => 'Ubah Kantor', 'modul' => 'kantor', 'deskripsi' => 'Mengubah kantor'],
+            ['nama_kunci' => 'offices.delete', 'nama_tampilan' => 'Hapus Kantor', 'modul' => 'kantor', 'deskripsi' => 'Menghapus kantor'],
 
             // Shift permissions
-            ['name' => 'shifts.view', 'display_name' => 'Lihat Shift', 'module' => 'shifts', 'description' => 'View shifts'],
-            ['name' => 'shifts.create', 'display_name' => 'Buat Shift', 'module' => 'shifts', 'description' => 'Create shifts'],
-            ['name' => 'shifts.edit', 'display_name' => 'Edit Shift', 'module' => 'shifts', 'description' => 'Edit shifts'],
-            ['name' => 'shifts.delete', 'display_name' => 'Hapus Shift', 'module' => 'shifts', 'description' => 'Delete shifts'],
+            ['nama_kunci' => 'shifts.view', 'nama_tampilan' => 'Lihat Shift', 'modul' => 'shift', 'deskripsi' => 'Melihat shift'],
+            ['nama_kunci' => 'shifts.create', 'nama_tampilan' => 'Buat Shift', 'modul' => 'shift', 'deskripsi' => 'Membuat shift'],
+            ['nama_kunci' => 'shifts.edit', 'nama_tampilan' => 'Ubah Shift', 'modul' => 'shift', 'deskripsi' => 'Mengubah shift'],
+            ['nama_kunci' => 'shifts.delete', 'nama_tampilan' => 'Hapus Shift', 'modul' => 'shift', 'deskripsi' => 'Menghapus shift'],
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(
-                ['name' => $permission['name']],
+                ['nama_kunci' => $permission['nama_kunci']],
                 [
-                    'display_name' => $permission['display_name'],
-                    'module' => $permission['module'],
-                    'description' => $permission['description']
+                    'nama_tampilan' => $permission['nama_tampilan'],
+                    'modul' => $permission['modul'],
+                    'deskripsi' => $permission['deskripsi']
                 ]
             );
         }
 
         // Get all permissions
-        $allPermissions = Permission::whereIn('name', array_column($permissions, 'name'))->get();
+        $allPermissions = Permission::whereIn('nama_kunci', array_column($permissions, 'nama_kunci'))->get();
 
         // Give all permissions to admin roles
-        $adminRoles = Role::whereIn('name', ['admin', 'ceo', 'hr', 'hrd'])->get();
+        $adminRoles = Role::whereIn('nama_kunci', ['admin', 'ceo', 'hr', 'hrd'])->get();
         foreach ($adminRoles as $role) {
             $role->permissions()->syncWithoutDetaching($allPermissions);
         }
 
         // Give view permissions to manager and karyawan
-        $viewPermissions = Permission::whereIn('name', ['schedules.view', 'shifts.view', 'offices.view'])->get();
-        $otherRoles = Role::whereIn('name', ['manager', 'karyawan', 'personalia'])->get();
+        $viewPermissions = Permission::whereIn('nama_kunci', ['schedules.view', 'shifts.view', 'offices.view'])->get();
+        $otherRoles = Role::whereIn('nama_kunci', ['manager', 'karyawan', 'personalia'])->get();
         foreach ($otherRoles as $role) {
             $role->permissions()->syncWithoutDetaching($viewPermissions);
         }
 
         // Give edit permissions to manager
-        $managerRole = Role::where('name', 'manager')->first();
+        $managerRole = Role::where('nama_kunci', 'manager')->first();
         if ($managerRole) {
-            $managerPermissions = Permission::whereIn('name', [
+            $managerPermissions = Permission::whereIn('nama_kunci', [
                 'schedules.view', 'schedules.create', 'schedules.edit', 'schedules.approve'
             ])->get();
             $managerRole->permissions()->syncWithoutDetaching($managerPermissions);
@@ -79,7 +79,7 @@ return new class extends Migration
     public function down(): void
     {
         // Remove permissions
-        Permission::whereIn('name', [
+        Permission::whereIn('nama_kunci', [ // Query by nama_kunci
             'schedules.view', 'schedules.create', 'schedules.edit', 'schedules.delete', 'schedules.approve',
             'offices.view', 'offices.create', 'offices.edit', 'offices.delete',
             'shifts.view', 'shifts.create', 'shifts.edit', 'shifts.delete'

@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('employees', function (Blueprint $table) {
-            $table->dropColumn(['tax_id', 'social_security_id']);
+        Schema::table('karyawan', function (Blueprint $table) {
+            // These columns were translated to 'npwp' and 'bpjs' in 2024_01_01_000002_create_departments_and_positions_tables.php
+            $table->dropColumn(['npwp', 'bpjs']);
         });
     }
 
@@ -21,9 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('employees', function (Blueprint $table) {
-            $table->string('tax_id', 30)->nullable()->comment('NPWP');
-            $table->string('social_security_id', 30)->nullable()->comment('BPJS');
+        Schema::table('karyawan', function (Blueprint $table) {
+            $table->string('npwp', 30)->nullable()->comment('NPWP');
+            $table->string('bpjs', 30)->nullable()->comment('BPJS');
         });
     }
 };

@@ -8,51 +8,55 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('roles', function (Blueprint $table) {
+        Schema::create('peran', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 50)->unique();
-            $table->string('display_name', 100);
-            $table->text('description')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
+            $table->string('nama_kunci', 50)->unique();
+            $table->string('nama_tampilan', 100);
+            $table->text('deskripsi')->nullable();
+            $table->boolean('aktif')->default(true);
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
         });
 
-        Schema::create('permissions', function (Blueprint $table) {
+        Schema::create('izin', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100)->unique();
-            $table->string('display_name', 150);
-            $table->string('module', 50);
-            $table->text('description')->nullable();
-            $table->timestamps();
+            $table->string('nama_kunci', 100)->unique();
+            $table->string('nama_tampilan', 150);
+            $table->string('modul', 50);
+            $table->text('deskripsi')->nullable();
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
         });
 
-        Schema::create('role_permissions', function (Blueprint $table) {
+        Schema::create('peran_izin', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('role_id')->constrained()->onDelete('cascade');
-            $table->foreignId('permission_id')->constrained()->onDelete('cascade');
-            $table->timestamps();
+            $table->foreignId('id_peran')->constrained('peran')->onDelete('cascade');
+            $table->foreignId('id_izin')->constrained('izin')->onDelete('cascade');
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
             
-            $table->unique(['role_id', 'permission_id']);
+            $table->unique(['id_peran', 'id_izin']);
         });
 
-        Schema::create('user_roles', function (Blueprint $table) {
+        Schema::create('pengguna_peran', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('role_id')->constrained()->onDelete('cascade');
-            $table->timestamp('assigned_at')->useCurrent();
-            $table->timestamp('expires_at')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
+            $table->foreignId('id_pengguna')->constrained('pengguna')->onDelete('cascade');
+            $table->foreignId('id_peran')->constrained('peran')->onDelete('cascade');
+            $table->timestamp('ditetapkan_pada')->useCurrent();
+            $table->timestamp('kadaluarsa_pada')->nullable();
+            $table->boolean('aktif')->default(true);
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
             
-            $table->unique(['user_id', 'role_id']);
+            $table->unique(['id_pengguna', 'id_peran']);
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('user_roles');
-        Schema::dropIfExists('role_permissions');
-        Schema::dropIfExists('permissions');
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('pengguna_peran');
+        Schema::dropIfExists('peran_izin');
+        Schema::dropIfExists('izin');
+        Schema::dropIfExists('peran');
     }
 };

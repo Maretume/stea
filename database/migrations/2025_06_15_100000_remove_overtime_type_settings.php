@@ -13,8 +13,8 @@ return new class extends Migration
     public function up(): void
     {
         // Remove overtime type settings from permit_settings table
-        DB::table('permit_settings')
-            ->whereIn('key', ['overtime_rate_weekday', 'overtime_rate_weekend'])
+        DB::table('pengaturan_izin_kerja') // permit_settings -> pengaturan_izin_kerja
+            ->whereIn('kunci', ['overtime_rate_weekday', 'overtime_rate_weekend']) // key -> kunci, but values are English
             ->delete();
     }
 
@@ -24,22 +24,22 @@ return new class extends Migration
     public function down(): void
     {
         // Recreate the overtime type settings if needed for rollback
-        DB::table('permit_settings')->insert([
+        DB::table('pengaturan_izin_kerja')->insert([ // permit_settings -> pengaturan_izin_kerja
             [
-                'key' => 'overtime_rate_weekday',
-                'value' => '1.5',
-                'type' => 'float',
-                'description' => 'Overtime rate multiplier for weekdays',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'kunci' => 'overtime_rate_weekday', // key -> kunci
+                'nilai' => '1.5', // value -> nilai
+                'tipe' => 'float', // type -> tipe
+                'deskripsi' => 'Pengali tarif lembur untuk hari kerja', // description translated
+                'dibuat_pada' => now(), // created_at -> dibuat_pada
+                'diperbarui_pada' => now(), // updated_at -> diperbarui_pada
             ],
             [
-                'key' => 'overtime_rate_weekend',
-                'value' => '2.0',
-                'type' => 'float',
-                'description' => 'Overtime rate multiplier for weekends',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'kunci' => 'overtime_rate_weekend',
+                'nilai' => '2.0',
+                'tipe' => 'float',
+                'deskripsi' => 'Pengali tarif lembur untuk akhir pekan',
+                'dibuat_pada' => now(),
+                'diperbarui_pada' => now(),
             ],
         ]);
     }

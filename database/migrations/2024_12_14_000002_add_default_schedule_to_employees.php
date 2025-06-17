@@ -8,19 +8,19 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('employees', function (Blueprint $table) {
-            $table->foreignId('default_shift_id')->nullable()->constrained('shifts')->onDelete('set null');
-            $table->foreignId('default_office_id')->nullable()->constrained('offices')->onDelete('set null');
-            $table->enum('default_work_type', ['WFO', 'WFA'])->default('WFO');
+        Schema::table('karyawan', function (Blueprint $table) {
+            $table->foreignId('id_shift_standar')->nullable()->constrained('shift')->onDelete('set null');
+            $table->foreignId('id_kantor_standar')->nullable()->constrained('kantor')->onDelete('set null');
+            $table->enum('tipe_kerja_standar', ['WFO', 'WFA'])->default('WFO');
         });
     }
 
     public function down()
     {
-        Schema::table('employees', function (Blueprint $table) {
-            $table->dropForeign(['default_shift_id']);
-            $table->dropForeign(['default_office_id']);
-            $table->dropColumn(['default_shift_id', 'default_office_id', 'default_work_type']);
+        Schema::table('karyawan', function (Blueprint $table) {
+            $table->dropForeign(['id_shift_standar']);
+            $table->dropForeign(['id_kantor_standar']);
+            $table->dropColumn(['id_shift_standar', 'id_kantor_standar', 'tipe_kerja_standar']);
         });
     }
 };

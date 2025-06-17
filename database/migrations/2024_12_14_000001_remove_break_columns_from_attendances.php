@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('attendances', function (Blueprint $table) {
+        Schema::table('absensi', function (Blueprint $table) {
             $table->dropColumn([
-                'break_start',
-                'break_end',
-                'total_break_minutes'
+                'mulai_istirahat',
+                'selesai_istirahat',
+                'total_menit_istirahat'
             ]);
         });
     }
@@ -25,10 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->time('break_start')->nullable()->after('clock_out');
-            $table->time('break_end')->nullable()->after('break_start');
-            $table->integer('total_break_minutes')->default(0)->after('total_work_minutes');
+        Schema::table('absensi', function (Blueprint $table) {
+            $table->time('mulai_istirahat')->nullable()->after('jam_keluar');
+            $table->time('selesai_istirahat')->nullable()->after('mulai_istirahat');
+            $table->integer('total_menit_istirahat')->default(0)->after('total_menit_kerja');
         });
     }
 };

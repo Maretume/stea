@@ -16,25 +16,25 @@ class OfficeShiftScheduleSeeder extends Seeder
         // Create Offices
         $offices = [
             [
-                'name' => 'Kantor Pusat Jakarta',
-                'latitude' => -6.2088,
-                'longitude' => 106.8456,
+                'nama' => 'Kantor Pusat Jakarta',
+                'lintang' => -6.2088,
+                'bujur' => 106.8456,
                 'radius' => 100,
-                'is_active' => true,
+                'aktif' => true,
             ],
             [
-                'name' => 'Kantor Cabang Bandung',
-                'latitude' => -6.9175,
-                'longitude' => 107.6191,
+                'nama' => 'Kantor Cabang Bandung',
+                'lintang' => -6.9175,
+                'bujur' => 107.6191,
                 'radius' => 150,
-                'is_active' => true,
+                'aktif' => true,
             ],
             [
-                'name' => 'Kantor Cabang Surabaya',
-                'latitude' => -7.2575,
-                'longitude' => 112.7521,
+                'nama' => 'Kantor Cabang Surabaya',
+                'lintang' => -7.2575,
+                'bujur' => 112.7521,
                 'radius' => 120,
-                'is_active' => true,
+                'aktif' => true,
             ],
         ];
 
@@ -45,28 +45,28 @@ class OfficeShiftScheduleSeeder extends Seeder
         // Create Shifts
         $shifts = [
             [
-                'name' => 'Shift Pagi',
-                'start_time' => '08:00:00',
-                'end_time' => '17:00:00',
-                'is_active' => true,
+                'nama' => 'Shift Pagi',
+                'waktu_mulai' => '08:00:00',
+                'waktu_selesai' => '17:00:00',
+                'aktif' => true,
             ],
             [
-                'name' => 'Shift Siang',
-                'start_time' => '13:00:00',
-                'end_time' => '22:00:00',
-                'is_active' => true,
+                'nama' => 'Shift Siang',
+                'waktu_mulai' => '13:00:00',
+                'waktu_selesai' => '22:00:00',
+                'aktif' => true,
             ],
             [
-                'name' => 'Shift Malam',
-                'start_time' => '22:00:00',
-                'end_time' => '07:00:00',
-                'is_active' => true,
+                'nama' => 'Shift Malam',
+                'waktu_mulai' => '22:00:00',
+                'waktu_selesai' => '07:00:00',
+                'aktif' => true,
             ],
             [
-                'name' => 'Shift Fleksibel',
-                'start_time' => '09:00:00',
-                'end_time' => '18:00:00',
-                'is_active' => true,
+                'nama' => 'Shift Fleksibel',
+                'waktu_mulai' => '09:00:00',
+                'waktu_selesai' => '18:00:00',
+                'aktif' => true,
             ],
         ];
 
@@ -75,10 +75,15 @@ class OfficeShiftScheduleSeeder extends Seeder
         }
 
         // Create sample schedules for existing users
-        $users = User::whereHas('employee')->take(5)->get();
+        $adminUser = User::whereHas('roles', function($q) {
+            $q->where('nama_kunci', 'admin');
+        })->first();
+        $adminUserId = $adminUser ? $adminUser->id : User::first()->id; // Fallback to first user if admin not found
+
+        $users = User::whereHas('employee')->take(5)->get(); // Assuming 'employee' relation exists
         $officeIds = Office::pluck('id')->toArray();
         $shiftIds = Shift::pluck('id')->toArray();
-        $workTypes = ['WFO', 'WFA'];
+        $workTypes = ['WFO', 'WFA']; // These are likely system keys, keep as is.
 
         foreach ($users as $user) {
             // Create schedules for the next 30 days
@@ -95,16 +100,16 @@ class OfficeShiftScheduleSeeder extends Seeder
                 $shiftId = $shiftIds[array_rand($shiftIds)];
 
                 Schedule::create([
-                    'user_id' => $user->id,
-                    'shift_id' => $shiftId,
-                    'office_id' => $officeId,
-                    'schedule_date' => $scheduleDate,
-                    'work_type' => $workType,
-                    'status' => 'approved', // Auto approve for demo
-                    'notes' => $workType === 'WFA' ? 'Remote work day' : 'Office work day',
-                    'created_by' => 1, // Assuming admin user ID is 1
-                    'approved_by' => 1,
-                    'approved_at' => now(),
+                    'id_pengguna' => $user->id,
+                    'id_shift' => $shiftId,
+                    'id_kantor' => $officeId,
+                    'tanggal_jadwal' => $scheduleDate,
+                    'tipe_kerja' => $workType,
+                    'status' => 'disetujui', // approved -> disetujui
+                    'catatan' => $workType === 'WFA' ? 'Kerja jarak jauh' : 'Kerja di kantor', // Remote work day / Office work day
+                    'dibuat_oleh' => $adminUserId,
+                    'disetujui_oleh' => $adminUserId,
+                    'disetujui_pada' => now(),
                 ]);
             }
         }

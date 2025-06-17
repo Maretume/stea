@@ -8,89 +8,94 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('salary_components', function (Blueprint $table) {
+        Schema::create('komponen_gaji', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100);
-            $table->string('code', 20)->unique();
-            $table->enum('type', ['allowance', 'deduction', 'benefit']);
-            $table->enum('calculation_type', ['fixed', 'percentage', 'formula']);
-            $table->decimal('default_amount', 15, 2)->default(0);
-            $table->decimal('percentage', 5, 2)->nullable();
-            $table->text('formula')->nullable();
-            $table->boolean('is_taxable')->default(true);
-            $table->boolean('is_active')->default(true);
-            $table->integer('sort_order')->default(0);
-            $table->timestamps();
+            $table->string('nama', 100);
+            $table->string('kode', 20)->unique();
+            $table->enum('tipe', ['tunjangan', 'potongan', 'manfaat']);
+            $table->enum('tipe_perhitungan', ['tetap', 'persentase', 'rumus']);
+            $table->decimal('jumlah_standar', 15, 2)->default(0);
+            $table->decimal('persentase', 5, 2)->nullable();
+            $table->text('rumus')->nullable();
+            $table->boolean('kena_pajak')->default(true);
+            $table->boolean('aktif')->default(true);
+            $table->integer('urutan')->default(0);
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
         });
 
-        Schema::create('employee_salary_components', function (Blueprint $table) {
+        Schema::create('komponen_gaji_karyawan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('salary_component_id')->constrained()->onDelete('cascade');
-            $table->decimal('amount', 15, 2);
-            $table->date('effective_date');
-            $table->date('end_date')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
+            $table->foreignId('id_pengguna')->constrained('pengguna')->onDelete('cascade');
+            $table->foreignId('id_komponen_gaji')->constrained('komponen_gaji')->onDelete('cascade');
+            $table->decimal('jumlah', 15, 2);
+            $table->date('tanggal_efektif');
+            $table->date('tanggal_berakhir')->nullable();
+            $table->boolean('aktif')->default(true);
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
             
-            $table->index(['user_id', 'effective_date']);
+            $table->index(['id_pengguna', 'tanggal_efektif']);
         });
 
-        Schema::create('payroll_periods', function (Blueprint $table) {
+        Schema::create('periode_penggajian', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 50);
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->date('pay_date');
-            $table->enum('status', ['draft', 'calculated', 'approved', 'paid'])->default('draft');
-            $table->foreignId('created_by')->constrained('users');
-            $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamp('approved_at')->nullable();
-            $table->timestamps();
+            $table->string('nama', 50);
+            $table->date('tanggal_mulai');
+            $table->date('tanggal_selesai');
+            $table->date('tanggal_bayar');
+            $table->enum('status', ['konsep', 'terhitung', 'disetujui', 'dibayar'])->default('konsep');
+            $table->foreignId('dibuat_oleh')->constrained('pengguna');
+            $table->foreignId('disetujui_oleh')->nullable()->constrained('pengguna')->onDelete('set null');
+            $table->timestamp('disetujui_pada')->nullable();
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
             
-            $table->index(['start_date', 'end_date']);
+            $table->index(['tanggal_mulai', 'tanggal_selesai']);
         });
 
-        Schema::create('payrolls', function (Blueprint $table) {
+        Schema::create('penggajian', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('payroll_period_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->decimal('basic_salary', 15, 2);
-            $table->decimal('total_allowances', 15, 2)->default(0);
-            $table->decimal('total_deductions', 15, 2)->default(0);
-            $table->decimal('overtime_amount', 15, 2)->default(0);
-            $table->decimal('gross_salary', 15, 2);
-            $table->decimal('tax_amount', 15, 2)->default(0);
-            $table->decimal('net_salary', 15, 2);
-            $table->integer('total_working_days');
-            $table->integer('total_present_days');
-            $table->integer('total_absent_days');
-            $table->integer('total_late_days');
-            $table->integer('total_overtime_hours');
-            $table->text('notes')->nullable();
-            $table->enum('status', ['draft', 'approved', 'paid'])->default('draft');
-            $table->timestamps();
+            $table->foreignId('id_periode_penggajian')->constrained('periode_penggajian')->onDelete('cascade');
+            $table->foreignId('id_pengguna')->constrained('pengguna')->onDelete('cascade');
+            $table->decimal('gaji_pokok', 15, 2);
+            $table->decimal('total_tunjangan', 15, 2)->default(0);
+            $table->decimal('total_potongan', 15, 2)->default(0);
+            $table->decimal('jumlah_lembur', 15, 2)->default(0);
+            $table->decimal('gaji_kotor', 15, 2);
+            $table->decimal('jumlah_pajak', 15, 2)->default(0);
+            $table->decimal('gaji_bersih', 15, 2);
+            $table->integer('total_hari_kerja');
+            $table->integer('total_hari_hadir');
+            $table->integer('total_hari_absen');
+            $table->integer('total_hari_terlambat');
+            $table->integer('total_jam_lembur');
+            $table->text('catatan')->nullable();
+            $table->enum('status', ['konsep', 'disetujui', 'dibayar'])->default('konsep');
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
             
-            $table->unique(['payroll_period_id', 'user_id']);
-            $table->index(['user_id', 'status']);
+            $table->unique(['id_periode_penggajian', 'id_pengguna']);
+            $table->index(['id_pengguna', 'status']);
         });
 
-        Schema::create('payroll_details', function (Blueprint $table) {
+        Schema::create('detail_penggajian', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('payroll_id')->constrained()->onDelete('cascade');
-            $table->foreignId('salary_component_id')->constrained();
-            $table->decimal('amount', 15, 2);
-            $table->text('calculation_notes')->nullable();
-            $table->timestamps();
+            $table->foreignId('id_penggajian')->constrained('penggajian')->onDelete('cascade');
+            $table->foreignId('id_komponen_gaji')->constrained('komponen_gaji');
+            $table->decimal('jumlah', 15, 2);
+            $table->text('catatan_perhitungan')->nullable();
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('payroll_details');
-        Schema::dropIfExists('payrolls');
-        Schema::dropIfExists('payroll_periods');
-        Schema::dropIfExists('employee_salary_components');
-        Schema::dropIfExists('salary_components');
+        Schema::dropIfExists('detail_penggajian');
+        Schema::dropIfExists('penggajian');
+        Schema::dropIfExists('periode_penggajian');
+        Schema::dropIfExists('komponen_gaji_karyawan');
+        Schema::dropIfExists('komponen_gaji');
     }
 };
