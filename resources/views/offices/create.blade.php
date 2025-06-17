@@ -23,7 +23,7 @@
                             <input type="text" name="name" id="name" 
                                    class="form-control @error('name') is-invalid @enderror" 
                                    value="{{ old('name') }}" 
-                                   placeholder="Contoh: Kantor Pusat Jakarta" required>
+                                   placeholder="Contoh: Kantor Pusat Jakarta" required maxlength="100">
                             @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

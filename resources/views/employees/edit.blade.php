@@ -250,7 +250,7 @@
                                     <input type="text" class="form-control @error('bank_name') is-invalid @enderror"
                                            id="bank_name" name="bank_name"
                                            value="{{ old('bank_name', $employee->bank_name) }}"
-                                           placeholder="Contoh: BCA, Mandiri">
+                                           placeholder="Contoh: BCA, Mandiri" maxlength="50">
                                     @error('bank_name')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -261,7 +261,7 @@
                                     <input type="text" class="form-control @error('bank_account') is-invalid @enderror"
                                            id="bank_account" name="bank_account"
                                            value="{{ old('bank_account', $employee->bank_account) }}"
-                                           placeholder="1234567890">
+                                           placeholder="1234567890" maxlength="30">
                                     @error('bank_account')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -272,7 +272,7 @@
                                     <input type="text" class="form-control @error('bank_account_name') is-invalid @enderror"
                                            id="bank_account_name" name="bank_account_name"
                                            value="{{ old('bank_account_name', $employee->bank_account_name) }}"
-                                           placeholder="Nama sesuai rekening">
+                                           placeholder="Nama sesuai rekening" maxlength="100">
                                     @error('bank_account_name')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

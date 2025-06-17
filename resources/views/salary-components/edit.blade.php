@@ -19,7 +19,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="name" class="form-label">Nama Komponen <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" 
-                                   id="name" name="name" value="{{ old('name', $salaryComponent->name) }}" required>
+                                   id="name" name="name" value="{{ old('name', $salaryComponent->name) }}" required maxlength="100">
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -28,7 +28,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="code" class="form-label">Kode Komponen <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('code') is-invalid @enderror" 
-                                   id="code" name="code" value="{{ old('code', $salaryComponent->code) }}" required>
+                                   id="code" name="code" value="{{ old('code', $salaryComponent->code) }}" required maxlength="20">
                             @error('code')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

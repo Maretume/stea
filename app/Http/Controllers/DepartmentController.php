@@ -57,32 +57,29 @@ class DepartmentController extends Controller
 
     public function store(Request $request)
     {
-        // SIMPLE VERSION FOR DEBUGGING - REMOVE AFTER FIXING
-        try {
-            // Basic validation only
-            if (empty($request->code) || empty($request->name)) {
-                return redirect()->back()
-                                ->withInput()
-                                ->with('error', 'Kode dan Nama departemen harus diisi.');
-            }
+        $request->validate([
+            'code' => 'required|max:10|unique:departments,code',
+            'name' => 'required|max:100',
+            'description' => 'nullable',
+            // 'is_active' will be handled below as it's a checkbox
+        ]);
 
-            // Create department with minimal data
+        try {
             $department = new Department();
             $department->code = $request->code;
             $department->name = $request->name;
             $department->description = $request->description;
-            $department->is_active = $request->has('is_active') ? 1 : 0;
+            $department->is_active = $request->has('is_active'); // Correctly handle boolean for checkbox
             $department->save();
 
-            // Force redirect with success message
-            session()->flash('success', 'Departemen berhasil dibuat!');
-            return redirect('/departments');
+            return redirect()->route('departments.index')
+                            ->with('success', 'Departemen berhasil dibuat.');
 
         } catch (\Exception $e) {
-            // Show detailed error
+            // Log the error or handle it more gracefully
             return redirect()->back()
                             ->withInput()
-                            ->with('error', 'Error: ' . $e->getMessage());
+                            ->with('error', 'Gagal membuat departemen: ' . $e->getMessage());
         }
     }
 

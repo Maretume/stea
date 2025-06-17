@@ -20,7 +20,7 @@
                         <label for="name" class="form-label">Nama Kantor <span class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('name') is-invalid @enderror" 
                                id="name" name="name" value="{{ old('name', $office->name) }}" 
-                               placeholder="Contoh: Kantor Pusat Jakarta" required>
+                               placeholder="Contoh: Kantor Pusat Jakarta" required maxlength="100">
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

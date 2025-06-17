@@ -19,7 +19,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="employee_id" class="form-label">Employee ID <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('employee_id') is-invalid @enderror" 
-                                   id="employee_id" name="employee_id" value="{{ old('employee_id') }}" required>
+                                   id="employee_id" name="employee_id" value="{{ old('employee_id') }}" required maxlength="20">
                             @error('employee_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -28,7 +28,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('username') is-invalid @enderror" 
-                                   id="username" name="username" value="{{ old('username') }}" required>
+                                   id="username" name="username" value="{{ old('username') }}" required maxlength="50">
                             @error('username')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -39,7 +39,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="first_name" class="form-label">Nama Depan <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('first_name') is-invalid @enderror" 
-                                   id="first_name" name="first_name" value="{{ old('first_name') }}" required>
+                                   id="first_name" name="first_name" value="{{ old('first_name') }}" required maxlength="50">
                             @error('first_name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -48,7 +48,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="last_name" class="form-label">Nama Belakang <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('last_name') is-invalid @enderror" 
-                                   id="last_name" name="last_name" value="{{ old('last_name') }}" required>
+                                   id="last_name" name="last_name" value="{{ old('last_name') }}" required maxlength="50">
                             @error('last_name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -59,7 +59,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                             <input type="email" class="form-control bg-light @error('email') is-invalid @enderror"
-                                   id="email" name="email" value="{{ old('email') }}" required readonly>
+                                   id="email" name="email" value="{{ old('email') }}" required readonly maxlength="100">
                             <small class="text-muted"><i class="fas fa-magic me-1"></i>Email akan dibuat otomatis berdasarkan username dengan domain @rhi.com</small>
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -69,7 +69,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="phone" class="form-label">Nomor Telepon</label>
                             <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                                   id="phone" name="phone" value="{{ old('phone') }}">
+                                   id="phone" name="phone" value="{{ old('phone') }}" maxlength="20">
                             @error('phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
