@@ -16,37 +16,37 @@ class CFOPayrollApprovalSeeder extends Seeder
     public function run()
     {
         // Ensure CFO role exists and has payroll.approve permission
-        $cfoRole = Role::where('name', 'cfo')->first();
+        $cfoRole = Role::where('nama_kunci', 'cfo')->first();
         
         if (!$cfoRole) {
             $cfoRole = Role::create([
-                'name' => 'cfo',
-                'display_name' => 'Chief Financial Officer',
-                'description' => 'Akses ke laporan keuangan, approval gaji, dan budget',
-                'is_active' => true,
+                'nama_kunci' => 'cfo',
+                'nama_tampilan' => 'Direktur Keuangan',
+                'deskripsi' => 'Akses ke laporan keuangan, persetujuan gaji, dan anggaran', // Already Indonesian-like, slight adjustment
+                'aktif' => true,
             ]);
         }
 
         // Ensure payroll.approve permission exists
-        $approvePermission = Permission::where('name', 'payroll.approve')->first();
+        $approvePermission = Permission::where('nama_kunci', 'payroll.approve')->first();
         
         if (!$approvePermission) {
             $approvePermission = Permission::create([
-                'name' => 'payroll.approve',
-                'display_name' => 'Approve Payroll',
-                'module' => 'payroll',
-                'description' => 'Approve payroll for employees'
+                'nama_kunci' => 'payroll.approve',
+                'nama_tampilan' => 'Setujui Penggajian',
+                'modul' => 'penggajian',
+                'deskripsi' => 'Menyetujui penggajian untuk karyawan'
             ]);
         }
 
         // Give CFO role the payroll.approve permission
-        if (!$cfoRole->hasPermission('payroll.approve')) {
+        if (!$cfoRole->hasPermission('payroll.approve')) { // hasPermission still uses name/nama_kunci
             $cfoRole->givePermissionTo($approvePermission);
-            $this->command->info('✅ CFO role granted payroll.approve permission');
+            $this->command->info('✅ Peran CFO diberikan izin payroll.approve');
         }
 
         // Ensure CFO has other necessary permissions
-        $cfoPermissions = [
+        $cfoPermissions = [ // These are nama_kunci, so they remain in English
             'dashboard.view', 'dashboard.analytics',
             'employees.view', 'employees.view_salary',
             'payroll.view_all', 'payroll.approve', 'payroll.reports',
@@ -54,61 +54,62 @@ class CFOPayrollApprovalSeeder extends Seeder
             'attendance.reports',
         ];
 
-        $permissions = Permission::whereIn('name', $cfoPermissions)->get();
+        $permissions = Permission::whereIn('nama_kunci', $cfoPermissions)->get();
         $cfoRole->permissions()->syncWithoutDetaching($permissions->pluck('id'));
 
         // Create a test CFO user if it doesn't exist
-        $cfoUser = User::where('employee_id', 'CFO001')->first();
+        $cfoUser = User::where('id_karyawan', 'CFO001')->first(); // Use translated key
         
         if (!$cfoUser) {
             $cfoUser = User::create([
-                'employee_id' => 'CFO001',
-                'username' => 'cfo',
-                'email' => 'cfo@stea.co.id',
-                'password' => Hash::make('cfo123'),
-                'first_name' => 'Chief Financial',
-                'last_name' => 'Officer',
-                'phone' => '081234567890',
-                'gender' => 'male',
-                'birth_date' => '1975-01-01',
-                'address' => 'Jakarta',
-                'status' => 'active',
+                'id_karyawan' => 'CFO001',
+                'nama_pengguna' => 'cfo',
+                'surel' => 'cfo@stea.co.id',
+                'kata_sandi' => Hash::make('cfo123'),
+                'nama_depan' => 'Kepala Keuangan', // Chief Financial
+                'nama_belakang' => 'Pejabat',     // Officer
+                'telepon' => '081234567890',
+                'jenis_kelamin' => 'pria', // male
+                'tanggal_lahir' => '1975-01-01',
+                'alamat' => 'Jakarta',
+                'status' => 'aktif', // active
             ]);
 
             // Assign CFO role to user
             $cfoUser->roles()->attach($cfoRole->id, [
-                'assigned_at' => now(),
-                'is_active' => true,
+                'ditetapkan_pada' => now(), // assigned_at
+                'aktif' => true,           // is_active
             ]);
 
             // Create employee record
-            $department = Department::where('code', 'BOD')->first();
-            $position = Position::where('code', 'CFO')->first();
+            // Department and Position lookup by original code
+            $department = Department::where('kode', 'BOD')->first();
+            $position = Position::where('kode', 'CFO')->first();
 
             if ($department && $position) {
                 Employee::create([
-                    'user_id' => $cfoUser->id,
-                    'department_id' => $department->id,
-                    'position_id' => $position->id,
-                    'hire_date' => now()->subYears(2),
-                    'employment_status' => 'active',
-                    'employment_type' => 'permanent',
-                    'basic_salary' => 40000000,
+                    'id_pengguna' => $cfoUser->id,
+                    'id_departemen' => $department->id,
+                    'id_jabatan' => $position->id,
+                    'tanggal_rekrut' => now()->subYears(2),
+                    'status_kepegawaian' => 'aktif', // active
+                    'jenis_kepegawaian' => 'tetap', // permanent
+                    'gaji_pokok' => 40000000,
                 ]);
             }
 
-            $this->command->info('✅ CFO test user created: cfo@stea.co.id / cfo123');
+            $this->command->info('✅ Pengguna uji CFO dibuat: cfo@stea.co.id / cfo123');
         } else {
             // Ensure existing CFO user has the role
-            if (!$cfoUser->hasRole('cfo')) {
+            if (!$cfoUser->hasRole('cfo')) { // hasRole still uses name/nama_kunci
                 $cfoUser->roles()->attach($cfoRole->id, [
-                    'assigned_at' => now(),
-                    'is_active' => true,
+                    'ditetapkan_pada' => now(), // assigned_at
+                    'aktif' => true,           // is_active
                 ]);
-                $this->command->info('✅ CFO role assigned to existing user');
+                $this->command->info('✅ Peran CFO ditetapkan ke pengguna yang ada');
             }
         }
 
-        $this->command->info('✅ CFO payroll approval setup completed');
+        $this->command->info('✅ Pengaturan persetujuan penggajian CFO selesai');
     }
 }

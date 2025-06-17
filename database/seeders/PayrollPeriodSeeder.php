@@ -13,54 +13,70 @@ class PayrollPeriodSeeder extends Seeder
     {
         // Get admin user for created_by
         $adminUser = User::whereHas('roles', function($query) {
-            $query->where('name', 'admin');
+            $query->where('nama_kunci', 'admin'); // Use translated key
         })->first();
 
         if (!$adminUser) {
-            $this->command->error('Admin user not found. Please run UserSeeder first.');
+            $this->command->error('Pengguna admin tidak ditemukan. Jalankan UserSeeder terlebih dahulu.');
             return;
         }
 
+        $monthMap = [
+            'January' => 'Januari', 'February' => 'Februari', 'March' => 'Maret',
+            'April' => 'April', 'May' => 'Mei', 'June' => 'Juni',
+            'July' => 'Juli', 'August' => 'Agustus', 'September' => 'September',
+            'October' => 'Oktober', 'November' => 'November', 'December' => 'Desember',
+        ];
+
+        $now = Carbon::now();
+        $nowFormatted = str_replace(array_keys($monthMap), array_values($monthMap), $now->format('F Y'));
+
+        $prevMonth = Carbon::now()->subMonth();
+        $prevMonthFormatted = str_replace(array_keys($monthMap), array_values($monthMap), $prevMonth->format('F Y'));
+
+        $nextMonth = Carbon::now()->addMonth();
+        $nextMonthFormatted = str_replace(array_keys($monthMap), array_values($monthMap), $nextMonth->format('F Y'));
+
         $periods = [
             [
-                'name' => 'Gaji Bulan ' . Carbon::now()->format('F Y'),
-                'start_date' => Carbon::now()->startOfMonth(),
-                'end_date' => Carbon::now()->endOfMonth(),
-                'pay_date' => Carbon::now()->endOfMonth()->addDays(5),
-                'description' => 'Periode gaji bulan ' . Carbon::now()->format('F Y'),
-                'status' => 'draft',
-                'created_by' => $adminUser->id,
+                'nama' => 'Gaji Bulan ' . $nowFormatted,
+                'tanggal_mulai' => $now->startOfMonth(),
+                'tanggal_selesai' => $now->endOfMonth(),
+                'tanggal_bayar' => $now->endOfMonth()->addDays(5),
+                'deskripsi' => 'Periode gaji bulan ' . $nowFormatted,
+                'status' => 'konsep', // draft -> konsep
+                'dibuat_oleh' => $adminUser->id,
             ],
             [
-                'name' => 'Gaji Bulan ' . Carbon::now()->subMonth()->format('F Y'),
-                'start_date' => Carbon::now()->subMonth()->startOfMonth(),
-                'end_date' => Carbon::now()->subMonth()->endOfMonth(),
-                'pay_date' => Carbon::now()->subMonth()->endOfMonth()->addDays(5),
-                'description' => 'Periode gaji bulan ' . Carbon::now()->subMonth()->format('F Y'),
-                'status' => 'calculated',
-                'created_by' => $adminUser->id,
+                'nama' => 'Gaji Bulan ' . $prevMonthFormatted,
+                'tanggal_mulai' => $prevMonth->startOfMonth(),
+                'tanggal_selesai' => $prevMonth->endOfMonth(),
+                'tanggal_bayar' => $prevMonth->endOfMonth()->addDays(5),
+                'deskripsi' => 'Periode gaji bulan ' . $prevMonthFormatted,
+                'status' => 'terhitung', // calculated -> terhitung
+                'dibuat_oleh' => $adminUser->id,
             ],
             [
-                'name' => 'Gaji Bulan ' . Carbon::now()->addMonth()->format('F Y'),
-                'start_date' => Carbon::now()->addMonth()->startOfMonth(),
-                'end_date' => Carbon::now()->addMonth()->endOfMonth(),
-                'pay_date' => Carbon::now()->addMonth()->endOfMonth()->addDays(5),
-                'description' => 'Periode gaji bulan ' . Carbon::now()->addMonth()->format('F Y'),
-                'status' => 'draft',
-                'created_by' => $adminUser->id,
+                'nama' => 'Gaji Bulan ' . $nextMonthFormatted,
+                'tanggal_mulai' => $nextMonth->startOfMonth(),
+                'tanggal_selesai' => $nextMonth->endOfMonth(),
+                'tanggal_bayar' => $nextMonth->endOfMonth()->addDays(5),
+                'deskripsi' => 'Periode gaji bulan ' . $nextMonthFormatted,
+                'status' => 'konsep', // draft -> konsep
+                'dibuat_oleh' => $adminUser->id,
             ],
         ];
 
         foreach ($periods as $periodData) {
             PayrollPeriod::firstOrCreate(
                 [
-                    'name' => $periodData['name'],
-                    'start_date' => $periodData['start_date'],
+                    'nama' => $periodData['nama'],
+                    'tanggal_mulai' => $periodData['tanggal_mulai'],
                 ],
                 $periodData
             );
         }
 
-        $this->command->info('✅ Payroll periods created successfully');
+        $this->command->info('✅ Periode penggajian berhasil dibuat');
     }
 }

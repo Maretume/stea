@@ -12,143 +12,143 @@ class SalaryComponentSeeder extends Seeder
         $components = [
             // Allowances
             [
-                'name' => 'Tunjangan Transport',
-                'code' => 'TRANSPORT',
-                'type' => 'allowance',
-                'calculation_type' => 'fixed',
-                'default_amount' => 500000,
-                'is_taxable' => false,
-                'sort_order' => 1,
+                'nama' => 'Tunjangan Transport',
+                'kode' => 'TRANSPORT',
+                'tipe' => 'tunjangan', // allowance
+                'tipe_perhitungan' => 'tetap', // fixed
+                'jumlah_standar' => 500000,
+                'kena_pajak' => false,
+                'urutan' => 1,
             ],
             [
-                'name' => 'Tunjangan Makan',
-                'code' => 'MEAL',
-                'type' => 'allowance',
-                'calculation_type' => 'fixed',
-                'default_amount' => 600000,
-                'is_taxable' => false,
-                'sort_order' => 2,
+                'nama' => 'Tunjangan Makan',
+                'kode' => 'MEAL',
+                'tipe' => 'tunjangan', // allowance
+                'tipe_perhitungan' => 'tetap', // fixed
+                'jumlah_standar' => 600000,
+                'kena_pajak' => false,
+                'urutan' => 2,
             ],
             [
-                'name' => 'Tunjangan Komunikasi',
-                'code' => 'COMMUNICATION',
-                'type' => 'allowance',
-                'calculation_type' => 'fixed',
-                'default_amount' => 300000,
-                'is_taxable' => true,
-                'sort_order' => 3,
+                'nama' => 'Tunjangan Komunikasi',
+                'kode' => 'COMMUNICATION',
+                'tipe' => 'tunjangan', // allowance
+                'tipe_perhitungan' => 'tetap', // fixed
+                'jumlah_standar' => 300000,
+                'kena_pajak' => true,
+                'urutan' => 3,
             ],
             [
-                'name' => 'Tunjangan Jabatan',
-                'code' => 'POSITION',
-                'type' => 'allowance',
-                'calculation_type' => 'percentage',
-                'percentage' => 20,
-                'is_taxable' => true,
-                'sort_order' => 4,
+                'nama' => 'Tunjangan Jabatan',
+                'kode' => 'POSITION',
+                'tipe' => 'tunjangan', // allowance
+                'tipe_perhitungan' => 'persentase', // percentage
+                'persentase' => 20,
+                'kena_pajak' => true,
+                'urutan' => 4,
             ],
             [
-                'name' => 'Tunjangan Keluarga',
-                'code' => 'FAMILY',
-                'type' => 'allowance',
-                'calculation_type' => 'percentage',
-                'percentage' => 10,
-                'is_taxable' => true,
-                'sort_order' => 5,
+                'nama' => 'Tunjangan Keluarga',
+                'kode' => 'FAMILY',
+                'tipe' => 'tunjangan', // allowance
+                'tipe_perhitungan' => 'persentase', // percentage
+                'persentase' => 10,
+                'kena_pajak' => true,
+                'urutan' => 5,
             ],
             [
-                'name' => 'Bonus Kinerja',
-                'code' => 'PERFORMANCE',
-                'type' => 'allowance',
-                'calculation_type' => 'fixed',
-                'default_amount' => 0,
-                'is_taxable' => true,
-                'sort_order' => 6,
+                'nama' => 'Bonus Kinerja',
+                'kode' => 'PERFORMANCE',
+                'tipe' => 'tunjangan', // allowance
+                'tipe_perhitungan' => 'tetap', // fixed
+                'jumlah_standar' => 0,
+                'kena_pajak' => true,
+                'urutan' => 6,
             ],
             [
-                'name' => 'Lembur',
-                'code' => 'OVERTIME',
-                'type' => 'allowance',
-                'calculation_type' => 'formula',
-                'formula' => '(basic_salary / 173) * overtime_hours * 1.5',
-                'is_taxable' => true,
-                'sort_order' => 7,
+                'nama' => 'Lembur',
+                'kode' => 'OVERTIME',
+                'tipe' => 'tunjangan', // allowance
+                'tipe_perhitungan' => 'rumus', // formula
+                'rumus' => '(basic_salary / 173) * overtime_hours * 1.5',
+                'kena_pajak' => true,
+                'urutan' => 7,
             ],
 
             // Deductions
             [
-                'name' => 'BPJS Kesehatan (Karyawan)',
-                'code' => 'BPJS_HEALTH_EMP',
-                'type' => 'deduction',
-                'calculation_type' => 'percentage',
-                'percentage' => 1,
-                'is_taxable' => false,
-                'sort_order' => 10,
+                'nama' => 'BPJS Kesehatan (Karyawan)',
+                'kode' => 'BPJS_HEALTH_EMP',
+                'tipe' => 'potongan', // deduction
+                'tipe_perhitungan' => 'persentase', // percentage
+                'persentase' => 1,
+                'kena_pajak' => false,
+                'urutan' => 10,
             ],
             [
-                'name' => 'BPJS Ketenagakerjaan (Karyawan)',
-                'code' => 'BPJS_WORK_EMP',
-                'type' => 'deduction',
-                'calculation_type' => 'percentage',
-                'percentage' => 2,
-                'is_taxable' => false,
-                'sort_order' => 11,
+                'nama' => 'BPJS Ketenagakerjaan (Karyawan)',
+                'kode' => 'BPJS_WORK_EMP',
+                'tipe' => 'potongan', // deduction
+                'tipe_perhitungan' => 'persentase', // percentage
+                'persentase' => 2,
+                'kena_pajak' => false,
+                'urutan' => 11,
             ],
             [
-                'name' => 'PPh 21',
-                'code' => 'TAX_PPH21',
-                'type' => 'deduction',
-                'calculation_type' => 'formula',
-                'formula' => 'calculate_pph21(taxable_income)',
-                'is_taxable' => false,
-                'sort_order' => 12,
+                'nama' => 'PPh 21',
+                'kode' => 'TAX_PPH21',
+                'tipe' => 'potongan', // deduction
+                'tipe_perhitungan' => 'rumus', // formula
+                'rumus' => 'calculate_pph21(taxable_income)',
+                'kena_pajak' => false,
+                'urutan' => 12,
             ],
             [
-                'name' => 'Potongan Keterlambatan',
-                'code' => 'LATE_DEDUCTION',
-                'type' => 'deduction',
-                'calculation_type' => 'fixed',
-                'default_amount' => 0,
-                'is_taxable' => false,
-                'sort_order' => 13,
+                'nama' => 'Potongan Keterlambatan',
+                'kode' => 'LATE_DEDUCTION',
+                'tipe' => 'potongan', // deduction
+                'tipe_perhitungan' => 'tetap', // fixed
+                'jumlah_standar' => 0,
+                'kena_pajak' => false,
+                'urutan' => 13,
             ],
             [
-                'name' => 'Potongan Alpha',
-                'code' => 'ABSENT_DEDUCTION',
-                'type' => 'deduction',
-                'calculation_type' => 'formula',
-                'formula' => '(basic_salary / working_days) * absent_days',
-                'is_taxable' => false,
-                'sort_order' => 14,
+                'nama' => 'Potongan Alpha',
+                'kode' => 'ABSENT_DEDUCTION',
+                'tipe' => 'potongan', // deduction
+                'tipe_perhitungan' => 'rumus', // formula
+                'rumus' => '(basic_salary / working_days) * absent_days',
+                'kena_pajak' => false,
+                'urutan' => 14,
             ],
             [
-                'name' => 'Pinjaman Karyawan',
-                'code' => 'LOAN',
-                'type' => 'deduction',
-                'calculation_type' => 'fixed',
-                'default_amount' => 0,
-                'is_taxable' => false,
-                'sort_order' => 15,
+                'nama' => 'Pinjaman Karyawan',
+                'kode' => 'LOAN',
+                'tipe' => 'potongan', // deduction
+                'tipe_perhitungan' => 'tetap', // fixed
+                'jumlah_standar' => 0,
+                'kena_pajak' => false,
+                'urutan' => 15,
             ],
 
             // Benefits (Company contributions)
             [
-                'name' => 'BPJS Kesehatan (Perusahaan)',
-                'code' => 'BPJS_HEALTH_COMP',
-                'type' => 'benefit',
-                'calculation_type' => 'percentage',
-                'percentage' => 4,
-                'is_taxable' => false,
-                'sort_order' => 20,
+                'nama' => 'BPJS Kesehatan (Perusahaan)',
+                'kode' => 'BPJS_HEALTH_COMP',
+                'tipe' => 'manfaat', // benefit
+                'tipe_perhitungan' => 'persentase', // percentage
+                'persentase' => 4,
+                'kena_pajak' => false,
+                'urutan' => 20,
             ],
             [
-                'name' => 'BPJS Ketenagakerjaan (Perusahaan)',
-                'code' => 'BPJS_WORK_COMP',
-                'type' => 'benefit',
-                'calculation_type' => 'percentage',
-                'percentage' => 3.7,
-                'is_taxable' => false,
-                'sort_order' => 21,
+                'nama' => 'BPJS Ketenagakerjaan (Perusahaan)',
+                'kode' => 'BPJS_WORK_COMP',
+                'tipe' => 'manfaat', // benefit
+                'tipe_perhitungan' => 'persentase', // percentage
+                'persentase' => 3.7,
+                'kena_pajak' => false,
+                'urutan' => 21,
             ],
         ];
 

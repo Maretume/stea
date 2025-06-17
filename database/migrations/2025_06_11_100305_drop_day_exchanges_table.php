@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::dropIfExists('day_exchanges');
+        Schema::dropIfExists('day_exchanges'); // Assuming original table name was not translated
     }
 
     /**
@@ -19,23 +19,24 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Recreate the day_exchanges table if needed for rollback
-        Schema::create('day_exchanges', function (Blueprint $table) {
+        // Recreate the table as 'pertukaran_hari' with translated columns
+        Schema::create('pertukaran_hari', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->date('original_work_date'); // Hari kerja yang ingin ditukar
-            $table->date('replacement_date'); // Hari pengganti
-            $table->text('reason');
-            $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
-            $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamp('approved_at')->nullable();
-            $table->text('approval_notes')->nullable();
-            $table->boolean('is_completed')->default(false);
-            $table->timestamp('completed_at')->nullable();
-            $table->timestamps();
+            $table->foreignId('id_pengguna')->constrained('pengguna')->onDelete('cascade');
+            $table->date('tanggal_kerja_asli');
+            $table->date('tanggal_pengganti');
+            $table->text('alasan');
+            $table->enum('status', ['menunggu', 'disetujui', 'ditoLak', 'selesai', 'dibatalkan'])->default('menunggu');
+            $table->foreignId('disetujui_oleh')->nullable()->constrained('pengguna')->onDelete('set null');
+            $table->timestamp('disetujui_pada')->nullable();
+            $table->text('catatan_persetujuan')->nullable();
+            $table->boolean('apakah_selesai')->default(false);
+            $table->timestamp('selesai_pada')->nullable();
+            $table->timestamp('dibuat_pada')->nullable();
+            $table->timestamp('diperbarui_pada')->nullable();
 
-            $table->index(['user_id', 'status']);
-            $table->index(['original_work_date', 'replacement_date']);
+            $table->index(['id_pengguna', 'status']);
+            $table->index(['tanggal_kerja_asli', 'tanggal_pengganti'], 'idx_pertukaran_hari_tanggal');
         });
     }
 };

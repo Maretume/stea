@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('payroll_periods', function (Blueprint $table) {
-            $table->text('description')->nullable()->after('pay_date');
+        Schema::table('periode_penggajian', function (Blueprint $table) {
+            $table->text('deskripsi')->nullable()->after('tanggal_bayar');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('payroll_periods', function (Blueprint $table) {
-            $table->dropColumn('description');
+        Schema::table('periode_penggajian', function (Blueprint $table) {
+            $table->dropColumn('deskripsi');
         });
     }
 };

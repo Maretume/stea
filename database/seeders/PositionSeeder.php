@@ -10,55 +10,55 @@ class PositionSeeder extends Seeder
 {
     public function run()
     {
-        $departments = Department::all()->keyBy('code');
+        $departments = Department::all()->keyBy('kode'); // Assuming Department model now uses 'kode'
 
         $positions = [
             // Board of Directors
-            ['code' => 'CEO', 'name' => 'Chief Executive Officer', 'department' => 'BOD', 'base_salary' => 50000000, 'level' => 1],
-            ['code' => 'CFO', 'name' => 'Chief Financial Officer', 'department' => 'BOD', 'base_salary' => 40000000, 'level' => 2],
+            ['kode' => 'CEO', 'nama' => 'Direktur Utama', 'department_code' => 'BOD', 'gaji_pokok' => 50000000, 'tingkat' => 1],
+            ['kode' => 'CFO', 'nama' => 'Direktur Keuangan', 'department_code' => 'BOD', 'gaji_pokok' => 40000000, 'tingkat' => 2],
             
             // Finance
-            ['code' => 'FM', 'name' => 'Finance Manager', 'department' => 'FIN', 'base_salary' => 25000000, 'level' => 3],
-            ['code' => 'ACC', 'name' => 'Accountant', 'department' => 'FIN', 'base_salary' => 12000000, 'level' => 4],
-            ['code' => 'ACCA', 'name' => 'Accounting Assistant', 'department' => 'FIN', 'base_salary' => 8000000, 'level' => 5],
+            ['kode' => 'FM', 'nama' => 'Manajer Keuangan', 'department_code' => 'FIN', 'gaji_pokok' => 25000000, 'tingkat' => 3],
+            ['kode' => 'ACC', 'nama' => 'Akuntan', 'department_code' => 'FIN', 'gaji_pokok' => 12000000, 'tingkat' => 4],
+            ['kode' => 'ACCA', 'nama' => 'Asisten Akuntansi', 'department_code' => 'FIN', 'gaji_pokok' => 8000000, 'tingkat' => 5],
             
             // Human Resources
-            ['code' => 'HRM', 'name' => 'HR Manager', 'department' => 'HR', 'base_salary' => 20000000, 'level' => 3],
-            ['code' => 'HRS', 'name' => 'HR Specialist', 'department' => 'HR', 'base_salary' => 12000000, 'level' => 4],
-            ['code' => 'PER', 'name' => 'Personalia', 'department' => 'HR', 'base_salary' => 9000000, 'level' => 5],
+            ['kode' => 'HRM', 'nama' => 'Manajer SDM', 'department_code' => 'HR', 'gaji_pokok' => 20000000, 'tingkat' => 3],
+            ['kode' => 'HRS', 'nama' => 'Spesialis SDM', 'department_code' => 'HR', 'gaji_pokok' => 12000000, 'tingkat' => 4],
+            ['kode' => 'PER', 'nama' => 'Personalia', 'department_code' => 'HR', 'gaji_pokok' => 9000000, 'tingkat' => 5],
             
             // Information Technology
-            ['code' => 'ITM', 'name' => 'IT Manager', 'department' => 'IT', 'base_salary' => 25000000, 'level' => 3],
-            ['code' => 'DEV', 'name' => 'Software Developer', 'department' => 'IT', 'base_salary' => 15000000, 'level' => 4],
-            ['code' => 'SYS', 'name' => 'System Administrator', 'department' => 'IT', 'base_salary' => 12000000, 'level' => 4],
-            ['code' => 'SUP', 'name' => 'IT Support', 'department' => 'IT', 'base_salary' => 8000000, 'level' => 5],
+            ['kode' => 'ITM', 'nama' => 'Manajer TI', 'department_code' => 'IT', 'gaji_pokok' => 25000000, 'tingkat' => 3],
+            ['kode' => 'DEV', 'nama' => 'Pengembang Perangkat Lunak', 'department_code' => 'IT', 'gaji_pokok' => 15000000, 'tingkat' => 4],
+            ['kode' => 'SYS', 'nama' => 'Administrator Sistem', 'department_code' => 'IT', 'gaji_pokok' => 12000000, 'tingkat' => 4],
+            ['kode' => 'SUP', 'nama' => 'Dukungan TI', 'department_code' => 'IT', 'gaji_pokok' => 8000000, 'tingkat' => 5],
             
             // Operations
-            ['code' => 'OPM', 'name' => 'Operations Manager', 'department' => 'OPS', 'base_salary' => 20000000, 'level' => 3],
-            ['code' => 'OPS', 'name' => 'Operations Staff', 'department' => 'OPS', 'base_salary' => 10000000, 'level' => 4],
+            ['kode' => 'OPM', 'nama' => 'Manajer Operasional', 'department_code' => 'OPS', 'gaji_pokok' => 20000000, 'tingkat' => 3],
+            ['kode' => 'OPS', 'nama' => 'Staf Operasional', 'department_code' => 'OPS', 'gaji_pokok' => 10000000, 'tingkat' => 4],
             
             // Marketing
-            ['code' => 'MKM', 'name' => 'Marketing Manager', 'department' => 'MKT', 'base_salary' => 20000000, 'level' => 3],
-            ['code' => 'MKS', 'name' => 'Marketing Specialist', 'department' => 'MKT', 'base_salary' => 12000000, 'level' => 4],
+            ['kode' => 'MKM', 'nama' => 'Manajer Pemasaran', 'department_code' => 'MKT', 'gaji_pokok' => 20000000, 'tingkat' => 3],
+            ['kode' => 'MKS', 'nama' => 'Spesialis Pemasaran', 'department_code' => 'MKT', 'gaji_pokok' => 12000000, 'tingkat' => 4],
             
             // Sales
-            ['code' => 'SM', 'name' => 'Sales Manager', 'department' => 'SALES', 'base_salary' => 18000000, 'level' => 3],
-            ['code' => 'SR', 'name' => 'Sales Representative', 'department' => 'SALES', 'base_salary' => 10000000, 'level' => 4],
+            ['kode' => 'SM', 'nama' => 'Manajer Penjualan', 'department_code' => 'SALES', 'gaji_pokok' => 18000000, 'tingkat' => 3],
+            ['kode' => 'SR', 'nama' => 'Perwakilan Penjualan', 'department_code' => 'SALES', 'gaji_pokok' => 10000000, 'tingkat' => 4],
             
             // Administration
-            ['code' => 'ADM', 'name' => 'Admin Manager', 'department' => 'ADM', 'base_salary' => 15000000, 'level' => 3],
-            ['code' => 'ADMS', 'name' => 'Admin Staff', 'department' => 'ADM', 'base_salary' => 8000000, 'level' => 5],
+            ['kode' => 'ADM', 'nama' => 'Manajer Administrasi', 'department_code' => 'ADM', 'gaji_pokok' => 15000000, 'tingkat' => 3],
+            ['kode' => 'ADMS', 'nama' => 'Staf Administrasi', 'department_code' => 'ADM', 'gaji_pokok' => 8000000, 'tingkat' => 5],
         ];
 
         foreach ($positions as $position) {
             Position::create([
-                'code' => $position['code'],
-                'name' => $position['name'],
-                'department_id' => $departments[$position['department']]->id,
-                'base_salary' => $position['base_salary'],
-                'level' => $position['level'],
-                'description' => 'Posisi ' . $position['name'],
-                'is_active' => true,
+                'kode' => $position['kode'],
+                'nama' => $position['nama'],
+                'id_departemen' => $departments[$position['department_code']]->id,
+                'gaji_pokok' => $position['gaji_pokok'],
+                'tingkat' => $position['tingkat'],
+                'deskripsi' => 'Posisi ' . $position['nama'],
+                'aktif' => true,
             ]);
         }
     }

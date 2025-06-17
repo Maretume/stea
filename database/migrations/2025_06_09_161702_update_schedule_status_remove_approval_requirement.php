@@ -13,18 +13,18 @@ return new class extends Migration
     public function up(): void
     {
         // Update existing 'scheduled' records to 'approved' and set approval fields
-        DB::table('schedules')
-            ->where('status', 'scheduled')
+        DB::table('jadwal') // schedules -> jadwal
+            ->where('status', 'terjadwal') // scheduled -> terjadwal
             ->update([
-                'status' => 'approved',
-                'approved_by' => DB::raw('created_by'),
-                'approved_at' => DB::raw('created_at'),
-                'updated_at' => now()
+                'status' => 'disetujui', // approved -> disetujui
+                'disetujui_oleh' => DB::raw('dibuat_oleh'), // approved_by -> disetujui_oleh, created_by -> dibuat_oleh
+                'disetujui_pada' => DB::raw('dibuat_pada'), // approved_at -> disetujui_pada, created_at -> dibuat_pada
+                'diperbarui_pada' => now() // updated_at -> diperbarui_pada
             ]);
 
         // Update the enum to remove 'scheduled' status and change default to 'approved'
-        Schema::table('schedules', function (Blueprint $table) {
-            $table->enum('status', ['approved', 'cancelled'])->default('approved')->change();
+        Schema::table('jadwal', function (Blueprint $table) { // schedules -> jadwal
+            $table->enum('status', ['disetujui', 'dibatalkan'])->default('disetujui')->change(); // approved -> disetujui, cancelled -> dibatalkan
         });
     }
 
@@ -34,8 +34,8 @@ return new class extends Migration
     public function down(): void
     {
         // Restore the original enum with 'scheduled' status and default
-        Schema::table('schedules', function (Blueprint $table) {
-            $table->enum('status', ['scheduled', 'approved', 'cancelled'])->default('scheduled')->change();
+        Schema::table('jadwal', function (Blueprint $table) { // schedules -> jadwal
+            $table->enum('status', ['terjadwal', 'disetujui', 'dibatalkan'])->default('terjadwal')->change(); // scheduled -> terjadwal, approved -> disetujui, cancelled -> dibatalkan
         });
 
         // Optionally, you could revert approved records back to scheduled

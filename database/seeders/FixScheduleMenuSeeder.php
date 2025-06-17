@@ -11,122 +11,123 @@ class FixScheduleMenuSeeder extends Seeder
 {
     public function run()
     {
-        $this->command->info('🔧 Fixing Schedule Menu Permissions...');
+        $this->command->info('🔧 Memperbaiki Izin Menu Jadwal...');
 
         // Create permissions if they don't exist
         $permissions = [
             // Schedule permissions
-            ['name' => 'schedules.view', 'display_name' => 'Lihat Jadwal', 'module' => 'schedules', 'description' => 'View schedules'],
-            ['name' => 'schedules.create', 'display_name' => 'Buat Jadwal', 'module' => 'schedules', 'description' => 'Create schedules'],
-            ['name' => 'schedules.edit', 'display_name' => 'Edit Jadwal', 'module' => 'schedules', 'description' => 'Edit schedules'],
-            ['name' => 'schedules.delete', 'display_name' => 'Hapus Jadwal', 'module' => 'schedules', 'description' => 'Delete schedules'],
-            ['name' => 'schedules.approve', 'display_name' => 'Setujui Jadwal', 'module' => 'schedules', 'description' => 'Approve schedules'],
+            ['nama_kunci' => 'schedules.view', 'nama_tampilan' => 'Lihat Jadwal', 'modul' => 'jadwal', 'deskripsi' => 'Melihat jadwal'],
+            ['nama_kunci' => 'schedules.create', 'nama_tampilan' => 'Buat Jadwal', 'modul' => 'jadwal', 'deskripsi' => 'Membuat jadwal'],
+            ['nama_kunci' => 'schedules.edit', 'nama_tampilan' => 'Ubah Jadwal', 'modul' => 'jadwal', 'deskripsi' => 'Mengubah jadwal'],
+            ['nama_kunci' => 'schedules.delete', 'nama_tampilan' => 'Hapus Jadwal', 'modul' => 'jadwal', 'deskripsi' => 'Menghapus jadwal'],
+            ['nama_kunci' => 'schedules.approve', 'nama_tampilan' => 'Setujui Jadwal', 'modul' => 'jadwal', 'deskripsi' => 'Menyetujui jadwal'],
 
             // Office permissions
-            ['name' => 'offices.view', 'display_name' => 'Lihat Kantor', 'module' => 'offices', 'description' => 'View offices'],
-            ['name' => 'offices.create', 'display_name' => 'Buat Kantor', 'module' => 'offices', 'description' => 'Create offices'],
-            ['name' => 'offices.edit', 'display_name' => 'Edit Kantor', 'module' => 'offices', 'description' => 'Edit offices'],
-            ['name' => 'offices.delete', 'display_name' => 'Hapus Kantor', 'module' => 'offices', 'description' => 'Delete offices'],
+            ['nama_kunci' => 'offices.view', 'nama_tampilan' => 'Lihat Kantor', 'modul' => 'kantor', 'deskripsi' => 'Melihat kantor'],
+            ['nama_kunci' => 'offices.create', 'nama_tampilan' => 'Buat Kantor', 'modul' => 'kantor', 'deskripsi' => 'Membuat kantor'],
+            ['nama_kunci' => 'offices.edit', 'nama_tampilan' => 'Ubah Kantor', 'modul' => 'kantor', 'deskripsi' => 'Mengubah kantor'],
+            ['nama_kunci' => 'offices.delete', 'nama_tampilan' => 'Hapus Kantor', 'modul' => 'kantor', 'deskripsi' => 'Menghapus kantor'],
 
             // Shift permissions
-            ['name' => 'shifts.view', 'display_name' => 'Lihat Shift', 'module' => 'shifts', 'description' => 'View shifts'],
-            ['name' => 'shifts.create', 'display_name' => 'Buat Shift', 'module' => 'shifts', 'description' => 'Create shifts'],
-            ['name' => 'shifts.edit', 'display_name' => 'Edit Shift', 'module' => 'shifts', 'description' => 'Edit shifts'],
-            ['name' => 'shifts.delete', 'display_name' => 'Hapus Shift', 'module' => 'shifts', 'description' => 'Delete shifts'],
+            ['nama_kunci' => 'shifts.view', 'nama_tampilan' => 'Lihat Shift', 'modul' => 'shift', 'deskripsi' => 'Melihat shift'],
+            ['nama_kunci' => 'shifts.create', 'nama_tampilan' => 'Buat Shift', 'modul' => 'shift', 'deskripsi' => 'Membuat shift'],
+            ['nama_kunci' => 'shifts.edit', 'nama_tampilan' => 'Ubah Shift', 'modul' => 'shift', 'deskripsi' => 'Mengubah shift'],
+            ['nama_kunci' => 'shifts.delete', 'nama_tampilan' => 'Hapus Shift', 'modul' => 'shift', 'deskripsi' => 'Menghapus shift'],
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(
-                ['name' => $permission['name']],
+                ['nama_kunci' => $permission['nama_kunci']],
                 [
-                    'display_name' => $permission['display_name'],
-                    'module' => $permission['module'],
-                    'description' => $permission['description']
+                    'nama_tampilan' => $permission['nama_tampilan'],
+                    'modul' => $permission['modul'],
+                    'deskripsi' => $permission['deskripsi']
                 ]
             );
         }
 
-        $this->command->info('✅ Permissions created/updated');
+        $this->command->info('✅ Izin dibuat/diperbarui');
 
         // Get all permissions
-        $allPermissions = Permission::whereIn('name', array_column($permissions, 'name'))->get();
+        $allPermissions = Permission::whereIn('nama_kunci', array_column($permissions, 'nama_kunci'))->get();
 
         // Assign to Admin role
-        $adminRole = Role::where('name', 'admin')->first();
+        $adminRole = Role::where('nama_kunci', 'admin')->first();
         if ($adminRole) {
             $adminRole->permissions()->syncWithoutDetaching($allPermissions);
-            $this->command->info('✅ Admin role updated with schedule permissions');
+            $this->command->info('✅ Peran Admin diperbarui dengan izin jadwal');
         }
 
         // Assign to CEO role
-        $ceoRole = Role::where('name', 'ceo')->first();
+        $ceoRole = Role::where('nama_kunci', 'ceo')->first();
         if ($ceoRole) {
             $ceoRole->permissions()->syncWithoutDetaching($allPermissions);
-            $this->command->info('✅ CEO role updated with schedule permissions');
+            $this->command->info('✅ Peran CEO diperbarui dengan izin jadwal');
         }
 
         // Assign to HR role
-        $hrRole = Role::where('name', 'hr')->first();
+        $hrRole = Role::where('nama_kunci', 'hr')->first();
         if ($hrRole) {
             $hrRole->permissions()->syncWithoutDetaching($allPermissions);
-            $this->command->info('✅ HR role updated with schedule permissions');
+            $this->command->info('✅ Peran HR diperbarui dengan izin jadwal');
         }
 
         // Assign to HRD role
-        $hrdRole = Role::where('name', 'hrd')->first();
+        $hrdRole = Role::where('nama_kunci', 'hrd')->first();
         if ($hrdRole) {
             $hrdRole->permissions()->syncWithoutDetaching($allPermissions);
-            $this->command->info('✅ HRD role updated with schedule permissions');
+            $this->command->info('✅ Peran HRD diperbarui dengan izin jadwal');
         }
 
         // Assign view permissions to Manager role
-        $managerRole = Role::where('name', 'manager')->first();
+        $managerRole = Role::where('nama_kunci', 'manager')->first();
         if ($managerRole) {
-            $managerPermissions = Permission::whereIn('name', [
+            $managerPermissions = Permission::whereIn('nama_kunci', [
                 'schedules.view', 'schedules.create', 'schedules.edit', 'schedules.approve',
                 'offices.view', 'shifts.view'
             ])->get();
             $managerRole->permissions()->syncWithoutDetaching($managerPermissions);
-            $this->command->info('✅ Manager role updated with schedule permissions');
+            $this->command->info('✅ Peran Manajer diperbarui dengan izin jadwal');
         }
 
         // Assign view permissions to Karyawan role
-        $karyawanRole = Role::where('name', 'karyawan')->first();
+        $karyawanRole = Role::where('nama_kunci', 'karyawan')->first();
         if ($karyawanRole) {
-            $karyawanPermissions = Permission::whereIn('name', [
+            $karyawanPermissions = Permission::whereIn('nama_kunci', [
                 'schedules.view', 'shifts.view'
             ])->get();
             $karyawanRole->permissions()->syncWithoutDetaching($karyawanPermissions);
-            $this->command->info('✅ Karyawan role updated with schedule permissions');
+            $this->command->info('✅ Peran Karyawan diperbarui dengan izin jadwal');
         }
 
         // Give all users with admin role the permissions
         $adminUsers = User::whereHas('roles', function($query) {
-            $query->whereIn('name', ['admin', 'ceo']);
+            $query->whereIn('nama_kunci', ['admin', 'ceo']);
         })->get();
 
         foreach ($adminUsers as $user) {
-            $this->command->info("✅ Admin user {$user->full_name} has access to schedule menus");
+            // Assuming User model has full_name or similar attribute
+            $this->command->info("✅ Pengguna admin {$user->nama_depan} {$user->nama_belakang} memiliki akses ke menu jadwal");
         }
 
         // Show current user info if logged in
         if (auth()->check()) {
             $currentUser = auth()->user();
-            $userRoles = $currentUser->roles->pluck('name')->toArray();
-            $hasSchedulePermission = $currentUser->hasPermission('schedules.view');
-            $hasShiftPermission = $currentUser->hasPermission('shifts.view');
+            $userRoles = $currentUser->roles->pluck('nama_kunci')->toArray(); // Use nama_kunci
+            $hasSchedulePermission = $currentUser->hasPermission('schedules.view'); // Permission name is key
+            $hasShiftPermission = $currentUser->hasPermission('shifts.view');     // Permission name is key
             
-            $this->command->info("📋 Current User Info:");
-            $this->command->info("   Name: {$currentUser->full_name}");
-            $this->command->info("   Roles: " . implode(', ', $userRoles));
-            $this->command->info("   Schedule Permission: " . ($hasSchedulePermission ? '✅ Yes' : '❌ No'));
-            $this->command->info("   Shift Permission: " . ($hasShiftPermission ? '✅ Yes' : '❌ No'));
+            $this->command->info("📋 Info Pengguna Saat Ini:");
+            $this->command->info("   Nama: {$currentUser->nama_depan} {$currentUser->nama_belakang}");
+            $this->command->info("   Peran: " . implode(', ', $userRoles));
+            $this->command->info("   Izin Jadwal: " . ($hasSchedulePermission ? '✅ Ya' : '❌ Tidak'));
+            $this->command->info("   Izin Shift: " . ($hasShiftPermission ? '✅ Ya' : '❌ Tidak'));
         }
 
-        $this->command->info('🎉 Schedule menu permissions fixed successfully!');
-        $this->command->info('📝 Menu items should now be visible based on user roles:');
-        $this->command->info('   - Admin/CEO/HR/HRD: Full access to all schedule features');
-        $this->command->info('   - Manager: Can view and manage schedules');
-        $this->command->info('   - Karyawan: Can view schedules');
+        $this->command->info('🎉 Izin menu jadwal berhasil diperbaiki!');
+        $this->command->info('📝 Item menu sekarang seharusnya terlihat berdasarkan peran pengguna:');
+        $this->command->info('   - Admin/CEO/HR/HRD: Akses penuh ke semua fitur jadwal');
+        $this->command->info('   - Manajer: Dapat melihat dan mengelola jadwal');
+        $this->command->info('   - Karyawan: Dapat melihat jadwal');
     }
 }
