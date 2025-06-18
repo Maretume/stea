@@ -28,8 +28,8 @@ class AuthController extends Controller
             
             // Update last login info
             $user->update([
-                'last_login_at' => now(),
-                'last_login_ip' => $request->ip(),
+                'login_terakhir_pada' => now(), // last_login_at -> login_terakhir_pada
+                'ip_login_terakhir' => $request->ip(), // last_login_ip -> ip_login_terakhir
             ]);
 
             $request->session()->regenerate();
@@ -39,8 +39,8 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'username' => 'Username atau password salah.',
-        ])->onlyInput('username');
+            'username' => 'Nama pengguna atau kata sandi salah.', // username -> nama_pengguna (in message)
+        ])->onlyInput('username'); // Assuming request input name is still 'username'
     }
 
     public function logout(Request $request)
@@ -60,7 +60,7 @@ class AuthController extends Controller
             return redirect()->route('dashboard');
         }
 
-        switch ($role->name) {
+        switch ($role->nama_kunci) { // name -> nama_kunci
             case 'ceo':
                 return redirect()->route('dashboard.ceo');
             case 'cfo':
@@ -91,41 +91,50 @@ class AuthController extends Controller
             'last_name' => 'required|string|max:50',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
-            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Assuming request field name is still 'profile_photo'
         ]);
 
+        // Assuming request field names match these English keys
         $data = $request->only(['first_name', 'last_name', 'phone', 'address']);
+
+        // Translate keys for User model update
+        $translatedData = [
+            'nama_depan' => $data['first_name'],
+            'nama_belakang' => $data['last_name'],
+            'telepon' => $data['phone'] ?? null,
+            'alamat' => $data['address'] ?? null,
+        ];
 
         if ($request->hasFile('profile_photo')) {
             $file = $request->file('profile_photo');
             $filename = time() . '_' . $file->getClientOriginalName();
             $file->move(public_path('uploads/profiles'), $filename);
-            $data['profile_photo'] = 'uploads/profiles/' . $filename;
+            $translatedData['foto_profil'] = 'uploads/profiles/' . $filename; // profile_photo -> foto_profil
         }
 
-        $user->update($data);
+        $user->update($translatedData);
 
-        return back()->with('success', 'Profile berhasil diperbarui.');
+        return back()->with('success', 'Profil berhasil diperbarui.'); // Profile -> Profil
     }
 
     public function changePassword(Request $request)
     {
         $request->validate([
-            'current_password' => 'required',
-            'password' => 'required|string|min:8|confirmed',
+            'current_password' => 'required', // Assuming request field name
+            'password' => 'required|string|min:8|confirmed', // Assuming request field name
         ]);
 
         $user = Auth::user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['current_password' => 'Password saat ini salah.']);
+        if (!Hash::check($request->current_password, $user->kata_sandi)) { // password -> kata_sandi
+            return back()->withErrors(['current_password' => 'Kata sandi saat ini salah.']); // Password -> Kata sandi
         }
 
         $user->update([
-            'password' => Hash::make($request->password),
-            'force_password_change' => false,
+            'kata_sandi' => Hash::make($request->password), // password -> kata_sandi
+            'paksa_ganti_kata_sandi' => false, // force_password_change -> paksa_ganti_kata_sandi
         ]);
 
-        return back()->with('success', 'Password berhasil diubah.');
+        return back()->with('success', 'Kata sandi berhasil diubah.'); // Password -> Kata sandi
     }
 }

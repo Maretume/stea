@@ -26,26 +26,28 @@ class DepartmentController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                $q->where('nama', 'like', "%{$search}%") // name -> nama
+                  ->orWhere('kode', 'like', "%{$search}%") // code -> kode
+                  ->orWhere('deskripsi', 'like', "%{$search}%"); // description -> deskripsi
             });
         }
 
         // Status filter
         if ($request->filled('status')) {
-            $isActive = $request->status === 'active';
-            $query->where('is_active', $isActive);
+            // Assuming $request->status provides 'true' or 'false' as string, or 1/0
+            $isActive = filter_var($request->status, FILTER_VALIDATE_BOOLEAN);
+            $query->where('aktif', $isActive); // is_active -> aktif
         }
 
-        $departments = $query->withCount(['employees', 'positions'])
-                           ->orderBy('created_at', 'desc')
+        $departments = $query->withCount(['employees', 'positions']) // Assuming relations are correctly set up in Department model
+                           ->orderBy('dibuat_pada', 'desc') // created_at -> dibuat_pada
                            ->paginate(10);
 
         // Calculate statistics for the summary cards
-        $total_employees = \App\Models\Employee::where('employment_status', 'active')->count();
-        $total_positions = \App\Models\Position::where('is_active', true)->count();
-        $active_departments = Department::where('is_active', true)->count();
+        // Assuming Employee, Position, Department models use translated 'status_kepegawaian', 'aktif' fields
+        $total_employees = \App\Models\Employee::where('status_kepegawaian', 'aktif')->count();
+        $total_positions = \App\Models\Position::where('aktif', true)->count();
+        $active_departments = Department::where('aktif', true)->count();
 
         return view('departments.index', compact('departments', 'total_employees', 'total_positions', 'active_departments'));
     }
@@ -68,15 +70,15 @@ class DepartmentController extends Controller
 
             // Create department with minimal data
             $department = new Department();
-            $department->code = $request->code;
-            $department->name = $request->name;
-            $department->description = $request->description;
-            $department->is_active = $request->has('is_active') ? 1 : 0;
+            $department->kode = $request->code; // code -> kode
+            $department->nama = $request->name; // name -> nama
+            $department->deskripsi = $request->description; // description -> deskripsi
+            $department->aktif = $request->has('is_active') ? 1 : 0; // is_active -> aktif
             $department->save();
 
             // Force redirect with success message
             session()->flash('success', 'Departemen berhasil dibuat!');
-            return redirect('/departments');
+            return redirect('/departments'); // Assuming route name is still /departments
 
         } catch (\Exception $e) {
             // Show detailed error
@@ -88,6 +90,7 @@ class DepartmentController extends Controller
 
     public function show(Department $department)
     {
+        // Assuming relations 'positions', 'employees.user' are correctly updated in their respective models
         $department->load(['positions', 'employees.user']);
         return view('departments.show', compact('department'));
     }
@@ -99,15 +102,21 @@ class DepartmentController extends Controller
 
     public function update(Request $request, Department $department)
     {
+        // Assuming request field names are still in English for validation keys
         $request->validate([
-            'code' => 'required|max:10|unique:departments,code,' . $department->id,
+            'code' => 'required|max:10|unique:departemen,kode,' . $department->id, // departments -> departemen, code -> kode
             'name' => 'required|max:100',
             'description' => 'nullable',
             'is_active' => 'boolean',
         ]);
 
-        $data = $request->only(['code', 'name', 'description']);
-        $data['is_active'] = $request->has('is_active');
+        // Map English request keys to Indonesian model attributes
+        $data = [
+            'kode' => $request->code,
+            'nama' => $request->name,
+            'deskripsi' => $request->description,
+            'aktif' => $request->has('is_active'), // is_active -> aktif
+        ];
 
         $department->update($data);
 

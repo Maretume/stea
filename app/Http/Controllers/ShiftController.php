@@ -9,7 +9,7 @@ class ShiftController extends Controller
 {
     public function index()
     {
-        $shifts = Shift::orderBy('start_time')->paginate(20);
+        $shifts = Shift::orderBy('waktu_mulai')->paginate(20); // start_time -> waktu_mulai
         return view('shifts.index', compact('shifts'));
     }
 
@@ -20,18 +20,19 @@ class ShiftController extends Controller
 
     public function store(Request $request)
     {
+        // Assuming request field names are still in English
         $request->validate([
-            'name' => 'required|string|max:50|unique:shifts,name',
+            'name' => 'required|string|max:50|unique:shift,nama', // shifts -> shift, name -> nama
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'is_active' => 'boolean',
         ]);
 
         Shift::create([
-            'name' => $request->name,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'is_active' => $request->has('is_active') ? $request->is_active : true,
+            'nama' => $request->name,                 // name -> nama
+            'waktu_mulai' => $request->start_time,   // start_time -> waktu_mulai
+            'waktu_selesai' => $request->end_time,   // end_time -> waktu_selesai
+            'aktif' => $request->has('is_active') ? $request->is_active : true, // is_active -> aktif
         ]);
 
         return redirect()->route('shifts.index')
@@ -54,8 +55,9 @@ class ShiftController extends Controller
     {
         $shift = Shift::findOrFail($id);
 
+        // Assuming request field names are still in English
         $request->validate([
-            'name' => 'required|string|max:50|unique:shifts,name,' . $id,
+            'name' => 'required|string|max:50|unique:shift,nama,' . $id, // shifts -> shift, name -> nama
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'is_active' => 'boolean',
@@ -63,9 +65,9 @@ class ShiftController extends Controller
 
         // Check if deactivating shift with active schedules
         if ($request->has('is_active') && !$request->is_active) {
-            $activeSchedulesCount = $shift->schedules()
-                                         ->where('status', 'approved')
-                                         ->where('schedule_date', '>=', today())
+            $activeSchedulesCount = $shift->schedules() // Assuming schedules relation is correct
+                                         ->where('status', 'disetujui') // approved -> disetujui
+                                         ->where('tanggal_jadwal', '>=', today()) // schedule_date -> tanggal_jadwal
                                          ->count();
 
             if ($activeSchedulesCount > 0) {
@@ -76,10 +78,10 @@ class ShiftController extends Controller
         }
 
         $shift->update([
-            'name' => $request->name,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'is_active' => $request->has('is_active') ? $request->is_active : $shift->is_active,
+            'nama' => $request->name,               // name -> nama
+            'waktu_mulai' => $request->start_time, // start_time -> waktu_mulai
+            'waktu_selesai' => $request->end_time, // end_time -> waktu_selesai
+            'aktif' => $request->has('is_active') ? $request->is_active : $shift->aktif, // is_active -> aktif
         ]);
 
         return redirect()->route('shifts.index')
@@ -91,14 +93,15 @@ class ShiftController extends Controller
         $shift = Shift::findOrFail($id);
         
         // Check if shift has active schedules
-        if ($shift->schedules()->where('status', 'approved')->exists()) {
+        // Assuming schedules relation is correct
+        if ($shift->schedules()->where('status', 'disetujui')->exists()) { // approved -> disetujui
             return redirect()->back()
-                            ->with('error', 'Cannot delete shift with active schedules.');
+                            ->with('error', 'Tidak dapat menghapus shift dengan jadwal aktif.'); // Cannot delete shift with active schedules.
         }
 
         $shift->delete();
 
         return redirect()->route('shifts.index')
-                        ->with('success', 'Shift deleted successfully.');
+                        ->with('success', 'Shift berhasil dihapus.'); // Shift deleted successfully.
     }
 }

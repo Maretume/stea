@@ -24,35 +24,36 @@ class AttendanceController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $query = Attendance::with('user');
+        $query = Attendance::with('user'); // User relation uses id_pengguna
 
         // Filter based on user role
-        if ($user->hasRole('karyawan')) {
-            $query->where('user_id', $user->id);
+        if ($user->hasRole('karyawan')) { // hasRole uses nama_kunci
+            $query->where('id_pengguna', $user->id); // user_id -> id_pengguna
         }
 
         // Apply filters
         if ($request->filled('date_from')) {
-            $query->where('date', '>=', $request->date_from);
+            $query->where('tanggal', '>=', $request->date_from); // date -> tanggal
         }
 
         if ($request->filled('date_to')) {
-            $query->where('date', '<=', $request->date_to);
+            $query->where('tanggal', '<=', $request->date_to); // date -> tanggal
         }
 
         if ($request->filled('user_id') && !$user->hasRole('karyawan')) {
-            $query->where('user_id', $request->user_id);
+            $query->where('id_pengguna', $request->user_id); // user_id -> id_pengguna
         }
 
         if ($request->filled('status')) {
+            // Assuming $request->status provides translated ENUM value
             $query->where('status', $request->status);
         }
 
-        $attendances = $query->orderBy('date', 'desc')
-                           ->orderBy('clock_in', 'desc')
+        $attendances = $query->orderBy('tanggal', 'desc') // date -> tanggal
+                           ->orderBy('jam_masuk', 'desc') // clock_in -> jam_masuk
                            ->paginate(20);
 
-        $users = $user->hasRole('karyawan') ? collect() : User::whereHas('employee')->get();
+        $users = $user->hasRole('karyawan') ? collect() : User::whereHas('employee')->get(); // Assuming employee relation is correct
 
         return view('attendance.index', compact('attendances', 'users'));
     }
@@ -63,11 +64,11 @@ class AttendanceController extends Controller
         $today = today();
 
         // Check if already clocked in today
-        $attendance = Attendance::where('user_id', $user->id)
-                                ->where('date', $today)
+        $attendance = Attendance::where('id_pengguna', $user->id) // user_id -> id_pengguna
+                                ->where('tanggal', $today)        // date -> tanggal
                                 ->first();
 
-        if ($attendance && $attendance->clock_in) {
+        if ($attendance && $attendance->jam_masuk) { // clock_in -> jam_masuk
             return response()->json([
                 'success' => false,
                 'message' => 'Anda sudah melakukan clock in hari ini.'
@@ -75,14 +76,14 @@ class AttendanceController extends Controller
         }
 
         // Get or create schedule for today
-        $todaySchedule = $user->getTodaySchedule();
+        $todaySchedule = $user->getTodaySchedule(); // Uses translated attributes internally
         if (!$todaySchedule) {
             // Auto-create schedule using employee's default settings
-            $todaySchedule = $user->getOrCreateTodaySchedule();
+            $todaySchedule = $user->getOrCreateTodaySchedule(); // Uses translated attributes internally
             if (!$todaySchedule) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak dapat membuat jadwal kerja. Pastikan Anda memiliki shift dan office default. Silakan hubungi HR.'
+                    'message' => 'Tidak dapat membuat jadwal kerja. Pastikan Anda memiliki shift dan kantor default. Silakan hubungi HR.' // office -> kantor
                 ]);
             }
         }
@@ -119,49 +120,50 @@ class AttendanceController extends Controller
             $user->id,
             $request->latitude,
             $request->longitude,
-            'clock_in'
+            'clock_in' // This is an action type, likely should remain English or be mapped if stored
         );
 
         $clockInTime = now();
 
         // Use shift-specific timing to determine status
-        $shift = $todaySchedule->shift;
-        $attendanceStatus = $shift->calculateAttendanceStatus($clockInTime);
+        $shift = $todaySchedule->shift; // Assumes shift relation on Schedule is correctly translated
+        $attendanceStatus = $shift->calculateAttendanceStatus($clockInTime); // Uses translated attributes internally
 
         // Calculate minutes based on status
         $lateMinutes = 0;
         $earlyMinutes = 0;
-        $status = 'present'; // Default status
+        // ENUM values: ['hadir', 'absen', 'terlambat', 'pulang_awal', 'setengah_hari', 'sakit', 'cuti', 'libur']
+        $status = 'hadir'; // Default status: present -> hadir
 
         switch ($attendanceStatus) {
-            case 'early':
-                $earlyMinutes = $shift->calculateEarlyMinutes($clockInTime);
-                $status = 'early';
+            case 'early': // This is a return from calculateAttendanceStatus, not a DB ENUM
+                $earlyMinutes = $shift->calculateEarlyMinutes($clockInTime); // Uses translated attributes internally
+                $status = 'hadir'; // Still 'hadir', early is a flag via menit_masuk_awal
                 break;
             case 'on_time':
-                $status = 'present';
+                $status = 'hadir';
                 break;
             case 'late':
-                $lateMinutes = $shift->calculateLateMinutes($clockInTime);
-                $status = 'late';
+                $lateMinutes = $shift->calculateLateMinutes($clockInTime); // Uses translated attributes internally
+                $status = 'terlambat'; // late -> terlambat
                 break;
         }
 
         $attendanceData = [
-            'user_id' => $user->id,
-            'date' => $today,
-            'clock_in' => $clockInTime,
-            'late_minutes' => $lateMinutes,
-            'early_minutes' => $earlyMinutes,
+            'id_pengguna' => $user->id,          // user_id -> id_pengguna
+            'tanggal' => $today,                // date -> tanggal
+            'jam_masuk' => $clockInTime,        // clock_in -> jam_masuk
+            'menit_terlambat' => $lateMinutes,    // late_minutes -> menit_terlambat
+            'menit_masuk_awal' => $earlyMinutes, // early_minutes -> menit_masuk_awal
             'status' => $status,
-            'clock_in_ip' => $request->ip(),
-            'office_id' => $todaySchedule->office_id,
+            'ip_jam_masuk' => $request->ip(),   // clock_in_ip -> ip_jam_masuk
+            'id_kantor' => $todaySchedule->id_kantor, // office_id -> id_kantor
         ];
 
         // Add location if provided
         if ($request->filled('latitude') && $request->filled('longitude')) {
-            $attendanceData['clock_in_lat'] = $request->latitude;
-            $attendanceData['clock_in_lng'] = $request->longitude;
+            $attendanceData['lat_jam_masuk'] = $request->latitude; // clock_in_lat -> lat_jam_masuk
+            $attendanceData['lng_jam_masuk'] = $request->longitude; // clock_in_lng -> lng_jam_masuk
         }
 
         if ($attendance) {
@@ -172,18 +174,15 @@ class AttendanceController extends Controller
 
         // Generate status message based on attendance status
         $statusMessage = '';
-        switch ($status) {
-            case 'early':
-                $statusMessage = "Clock in berhasil - Terlalu dini {$earlyMinutes} menit";
-                break;
-            case 'late':
-                $statusMessage = "Clock in berhasil - Terlambat {$lateMinutes} menit";
-                break;
-            case 'present':
-            default:
-                $statusMessage = "Clock in berhasil - Tepat waktu";
-                break;
+        // Using the calculated status for message, not the internal 'early'/'late' from shift calculation directly
+        if ($status === 'terlambat') {
+            $statusMessage = "Clock in berhasil - Terlambat {$lateMinutes} menit";
+        } elseif ($earlyMinutes > 0 && $status === 'hadir') { // If early and status is 'hadir'
+             $statusMessage = "Clock in berhasil - Masuk awal {$earlyMinutes} menit";
+        } else { // present
+            $statusMessage = "Clock in berhasil - Tepat waktu";
         }
+
 
         return response()->json([
             'success' => true,
@@ -191,7 +190,7 @@ class AttendanceController extends Controller
             'data' => [
                 'attendance' => $attendance,
                 'schedule' => $todaySchedule,
-                'work_type' => $todaySchedule->work_type,
+                'work_type' => $todaySchedule->tipe_kerja, // work_type -> tipe_kerja
                 'status' => $status,
                 'late_minutes' => $lateMinutes,
                 'early_minutes' => $earlyMinutes
@@ -204,18 +203,18 @@ class AttendanceController extends Controller
         $user = Auth::user();
         $today = today();
 
-        $attendance = Attendance::where('user_id', $user->id)
-                                ->where('date', $today)
+        $attendance = Attendance::where('id_pengguna', $user->id) // user_id -> id_pengguna
+                                ->where('tanggal', $today)        // date -> tanggal
                                 ->first();
 
-        if (!$attendance || !$attendance->clock_in) {
+        if (!$attendance || !$attendance->jam_masuk) { // clock_in -> jam_masuk
             return response()->json([
                 'success' => false,
                 'message' => 'Anda belum melakukan clock in hari ini.'
             ]);
         }
 
-        if ($attendance->clock_out) {
+        if ($attendance->jam_keluar) { // clock_out -> jam_keluar
             return response()->json([
                 'success' => false,
                 'message' => 'Anda sudah melakukan clock out hari ini.'
@@ -223,61 +222,65 @@ class AttendanceController extends Controller
         }
 
         // Get or create today's schedule to use shift timing
-        $todaySchedule = $user->getTodaySchedule();
+        $todaySchedule = $user->getTodaySchedule(); // Uses translated attributes
         if (!$todaySchedule) {
             // Auto-create schedule using employee's default settings
-            $todaySchedule = $user->getOrCreateTodaySchedule();
+            $todaySchedule = $user->getOrCreateTodaySchedule(); // Uses translated attributes
             if (!$todaySchedule) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak dapat membuat jadwal kerja. Pastikan Anda memiliki shift dan office default. Silakan hubungi HR.'
+                    'message' => 'Tidak dapat membuat jadwal kerja. Pastikan Anda memiliki shift dan kantor default. Silakan hubungi HR.'
                 ]);
             }
         }
 
         // Validate location for WFO clock out
-        if ($todaySchedule->isWFO()) {
+        if ($todaySchedule->isWFO()) { // isWFO uses tipe_kerja
             if ($request->filled('latitude') && $request->filled('longitude')) {
-                if (!$todaySchedule->canClockInAtLocation($request->latitude, $request->longitude)) {
-                    $distance = $todaySchedule->getDistanceFromOffice($request->latitude, $request->longitude);
+                if (!$todaySchedule->canClockInAtLocation($request->latitude, $request->longitude)) { // uses translated office relation
+                    $distance = $todaySchedule->getDistanceFromOffice($request->latitude, $request->longitude); // uses translated office relation
                     return response()->json([
                         'success' => false,
-                        'message' => "Anda berada di luar radius kantor untuk clock out. Jarak Anda: " . round($distance) . " meter dari kantor " . $todaySchedule->office->name . "."
+                        'message' => "Anda berada di luar radius kantor untuk clock out. Jarak Anda: " . round($distance) . " meter dari kantor " . $todaySchedule->office->nama . "." // office->name -> office->nama
                     ]);
                 }
             }
         }
 
         $clockOutTime = now();
-        $shift = $todaySchedule->shift;
+        $shift = $todaySchedule->shift; // Assumes shift relation is correct
 
-        $earlyLeaveMinutes = $shift->calculateEarlyLeaveMinutes($clockOutTime);
-        $overtimeMinutes = $shift->calculateOvertimeMinutes($clockOutTime);
+        $earlyLeaveMinutes = $shift->calculateEarlyLeaveMinutes($clockOutTime); // Uses translated attributes
+        $overtimeMinutes = $shift->calculateOvertimeMinutes($clockOutTime);   // Uses translated attributes
 
         // Calculate total work minutes
-        $clockIn = Carbon::parse($attendance->clock_in);
+        $clockIn = Carbon::parse($attendance->jam_masuk); // clock_in -> jam_masuk
         $clockOut = Carbon::parse($clockOutTime);
         $totalWorkMinutes = $clockOut->diffInMinutes($clockIn);
 
         // Determine final status based on early leave and existing status
-        $finalStatus = $attendance->status;
+        $finalStatus = $attendance->status; // Original status (e.g., 'hadir', 'terlambat')
         if ($earlyLeaveMinutes > 0) {
-            $finalStatus = 'early_leave';
+            $finalStatus = 'pulang_awal'; // early_leave -> pulang_awal
         }
+        // If already 'terlambat' and also 'pulang_awal', 'pulang_awal' might take precedence or combine.
+        // For simplicity, if pulang_awal, status becomes pulang_awal.
+        // If they were 'terlambat' and not 'pulang_awal', status remains 'terlambat'.
+        // If they were 'hadir' and not 'pulang_awal', status remains 'hadir'.
 
         $updateData = [
-            'clock_out' => $clockOutTime,
-            'early_leave_minutes' => $earlyLeaveMinutes,
-            'overtime_minutes' => $overtimeMinutes,
-            'total_work_minutes' => $totalWorkMinutes,
+            'jam_keluar' => $clockOutTime,               // clock_out -> jam_keluar
+            'menit_pulang_awal' => $earlyLeaveMinutes,  // early_leave_minutes -> menit_pulang_awal
+            'menit_lembur' => $overtimeMinutes,         // overtime_minutes -> menit_lembur
+            'total_menit_kerja' => $totalWorkMinutes,   // total_work_minutes -> total_menit_kerja
             'status' => $finalStatus,
-            'clock_out_ip' => $request->ip(),
+            'ip_jam_keluar' => $request->ip(),          // clock_out_ip -> ip_jam_keluar
         ];
 
         // Add location if provided
         if ($request->filled('latitude') && $request->filled('longitude')) {
-            $updateData['clock_out_lat'] = $request->latitude;
-            $updateData['clock_out_lng'] = $request->longitude;
+            $updateData['lat_jam_keluar'] = $request->latitude;   // clock_out_lat -> lat_jam_keluar
+            $updateData['lng_jam_keluar'] = $request->longitude; // clock_out_lng -> lng_jam_keluar
         }
 
         $attendance->update($updateData);
@@ -307,7 +310,7 @@ class AttendanceController extends Controller
             'data' => [
                 'attendance' => $attendance->fresh(),
                 'schedule' => $todaySchedule,
-                'work_type' => $todaySchedule->work_type,
+                'work_type' => $todaySchedule->tipe_kerja, // work_type -> tipe_kerja
                 'status' => $finalStatus,
                 'overtime_minutes' => $overtimeMinutes,
                 'early_leave_minutes' => $earlyLeaveMinutes,
@@ -322,11 +325,11 @@ class AttendanceController extends Controller
     {
         try {
             $user = Auth::user();
-            $attendance = Attendance::where('user_id', $user->id)
-                                    ->where('date', today())
+            $attendance = Attendance::where('id_pengguna', $user->id) // user_id -> id_pengguna
+                                    ->where('tanggal', today())     // date -> tanggal
                                     ->first();
 
-            $todaySchedule = $user->getTodaySchedule();
+            $todaySchedule = $user->getTodaySchedule(); // Uses translated attributes
 
             // Debug logging
             \Log::info('Today schedule data:', [
@@ -340,8 +343,8 @@ class AttendanceController extends Controller
                 'data' => [
                     'attendance' => $attendance,
                     'schedule' => $todaySchedule,
-                    'can_clock_in' => $user->canClockInToday(),
-                    'work_type' => $user->getTodayWorkType(),
+                    'can_clock_in' => $user->canClockInToday(), // Uses translated attributes
+                    'work_type' => $user->getTodayWorkType(), // Uses translated attributes
                 ]
             ]);
         } catch (\Exception $e) {
@@ -364,9 +367,9 @@ class AttendanceController extends Controller
     {
         try {
             $user = Auth::user();
-            $recentAttendances = Attendance::where('user_id', $user->id)
-                                          ->with(['user'])
-                                          ->orderBy('date', 'desc')
+            $recentAttendances = Attendance::where('id_pengguna', $user->id) // user_id -> id_pengguna
+                                          ->with(['user']) // User relation uses id_pengguna
+                                          ->orderBy('tanggal', 'desc') // date -> tanggal
                                           ->limit(7)
                                           ->get();
 
@@ -391,14 +394,14 @@ class AttendanceController extends Controller
         $today = today();
 
         // Check if already has attendance today
-        $attendance = Attendance::where('user_id', $user->id)
-                                ->where('date', $today)
+        $attendance = Attendance::where('id_pengguna', $user->id) // user_id -> id_pengguna
+                                ->where('tanggal', $today)        // date -> tanggal
                                 ->first();
 
-        if (!$attendance || !$attendance->clock_in) {
+        if (!$attendance || !$attendance->jam_masuk) { // clock_in -> jam_masuk
             // Perform clock in
             return $this->clockIn($request);
-        } elseif (!$attendance->clock_out) {
+        } elseif (!$attendance->jam_keluar) { // clock_out -> jam_keluar
             // Perform clock out
             return $this->clockOut($request);
         } else {
@@ -421,7 +424,7 @@ class AttendanceController extends Controller
         ]);
 
         $user = Auth::user();
-        $todaySchedule = $user->getTodaySchedule();
+        $todaySchedule = $user->getTodaySchedule(); // Uses translated attributes
 
         if (!$todaySchedule) {
             return response()->json([
@@ -438,10 +441,10 @@ class AttendanceController extends Controller
         }
 
         // For WFA, location is always valid
-        if ($todaySchedule->work_type === 'WFA') {
+        if ($todaySchedule->tipe_kerja === 'WFA') { // work_type -> tipe_kerja
             return response()->json([
                 'success' => true,
-                'message' => 'Work From Anywhere - lokasi valid',
+                'message' => 'Kerja Dari Mana Saja (WFA) - lokasi valid', // Work From Anywhere -> Kerja Dari Mana Saja
                 'data' => [
                     'valid' => true,
                     'work_type' => 'WFA',
@@ -479,7 +482,7 @@ class AttendanceController extends Controller
         
         // Check permission
         $user = Auth::user();
-        if (!$user->hasPermission('attendance.edit')) {
+        if (!$user->hasPermission('attendance.edit')) { // hasPermission uses nama_kunci
             abort(403);
         }
 
@@ -490,35 +493,44 @@ class AttendanceController extends Controller
     {
         $attendance = Attendance::findOrFail($id);
         
+        // Assuming request field names are still in English
         $request->validate([
             'clock_in' => 'nullable|date_format:H:i',
             'clock_out' => 'nullable|date_format:H:i',
             'late_minutes' => 'nullable|integer|min:0',
-            'early_minutes' => 'nullable|integer|min:0',
+            'early_minutes' => 'nullable|integer|min:0', // This is 'menit_masuk_awal'
             'early_leave_minutes' => 'nullable|integer|min:0',
             'overtime_minutes' => 'nullable|integer|min:0',
-            'status' => 'required|in:present,absent,late,early,half_day,sick,leave,holiday',
+            // ENUM values: ['hadir', 'absen', 'terlambat', 'pulang_awal', 'setengah_hari', 'sakit', 'cuti', 'libur']
+            'status' => 'required|in:hadir,absen,terlambat,pulang_awal,setengah_hari,sakit,cuti,libur',
         ]);
 
-        $data = $request->only([
-            'clock_in', 'clock_out',
-            'late_minutes', 'early_minutes', 'early_leave_minutes', 'overtime_minutes',
-            'status'
-        ]);
+        // Map English request keys to Indonesian model attributes
+        $data = [
+            'jam_masuk' => $request->clock_in,
+            'jam_keluar' => $request->clock_out,
+            'menit_terlambat' => $request->late_minutes,
+            'menit_masuk_awal' => $request->early_minutes, // early_minutes (request) -> menit_masuk_awal (db)
+            'menit_pulang_awal' => $request->early_leave_minutes,
+            'menit_lembur' => $request->overtime_minutes,
+            'status' => $request->status, // Value already translated from validation
+        ];
 
         // Recalculate work minutes if times are provided
-        if ($data['clock_in'] && $data['clock_out']) {
-            $clockIn = Carbon::parse($data['clock_in']);
-            $clockOut = Carbon::parse($data['clock_out']);
+        if ($data['jam_masuk'] && $data['jam_keluar']) {
+            $clockIn = Carbon::parse($data['jam_masuk']);
+            $clockOut = Carbon::parse($data['jam_keluar']);
             $totalWorkMinutes = $clockOut->diffInMinutes($clockIn);
 
-            $data['total_work_minutes'] = $totalWorkMinutes;
+            $data['total_menit_kerja'] = $totalWorkMinutes; // total_work_minutes -> total_menit_kerja
 
             // Recalculate late and overtime
-            $rule = AttendanceRule::where('is_default', true)->first();
+            // Assuming AttendanceRule model uses 'standar'
+            $rule = AttendanceRule::where('standar', true)->first();
             if ($rule) {
-                $data['late_minutes'] = $rule->calculateLateMinutes($data['clock_in']);
-                $data['overtime_minutes'] = $rule->calculateOvertimeMinutes($data['clock_out']);
+                // These methods in AttendanceRule should use translated attribute names
+                $data['menit_terlambat'] = $rule->calculateLateMinutes($data['jam_masuk']);
+                $data['menit_lembur'] = $rule->calculateOvertimeMinutes($data['jam_keluar']);
             }
         }
 
@@ -535,22 +547,23 @@ class AttendanceController extends Controller
         $departmentId = $request->get('department_id');
 
         $query = Attendance::with(['user.employee.department', 'user.employee.position'])
-                          ->whereBetween('date', [$startDate, $endDate]);
+                          ->whereBetween('tanggal', [$startDate, $endDate]); // date -> tanggal
 
         if ($departmentId) {
             $query->whereHas('user.employee', function($q) use ($departmentId) {
-                $q->where('department_id', $departmentId);
+                $q->where('id_departemen', $departmentId); // department_id -> id_departemen
             });
         }
 
-        $attendances = $query->orderBy('date', 'desc')->get();
+        $attendances = $query->orderBy('tanggal', 'desc')->get(); // date -> tanggal
 
+        // Using translated ENUM values for summary
         $summary = [
-            'total_present' => $attendances->where('status', 'present')->count(),
-            'total_late' => $attendances->where('status', 'late')->count(),
-            'total_absent' => $attendances->where('status', 'absent')->count(),
-            'total_sick' => $attendances->where('status', 'sick')->count(),
-            'total_leave' => $attendances->where('status', 'leave')->count(),
+            'total_present' => $attendances->where('status', 'hadir')->count(),
+            'total_late' => $attendances->where('status', 'terlambat')->count(),
+            'total_absent' => $attendances->where('status', 'absen')->count(),
+            'total_sick' => $attendances->where('status', 'sakit')->count(),
+            'total_leave' => $attendances->where('status', 'cuti')->count(),
         ];
 
         return view('attendance.report', compact('attendances', 'summary', 'startDate', 'endDate'));

@@ -9,7 +9,7 @@ class OfficeController extends Controller
 {
     public function index()
     {
-        $offices = Office::orderBy('name')->paginate(20);
+        $offices = Office::orderBy('nama')->paginate(20); // name -> nama
         return view('offices.index', compact('offices'));
     }
 
@@ -20,8 +20,9 @@ class OfficeController extends Controller
 
     public function store(Request $request)
     {
+        // Assuming request field names are still in English
         $request->validate([
-            'name' => 'required|string|max:100|unique:offices,name',
+            'name' => 'required|string|max:100|unique:kantor,nama', // offices -> kantor, name -> nama
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'radius' => 'required|integer|min:10|max:1000',
@@ -29,11 +30,11 @@ class OfficeController extends Controller
         ]);
 
         Office::create([
-            'name' => $request->name,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
+            'nama' => $request->name,         // name -> nama
+            'lintang' => $request->latitude,  // latitude -> lintang
+            'bujur' => $request->longitude, // longitude -> bujur
             'radius' => $request->radius,
-            'is_active' => $request->has('is_active') ? $request->is_active : true,
+            'aktif' => $request->has('is_active') ? $request->is_active : true, // is_active -> aktif
         ]);
 
         return redirect()->route('offices.index')
@@ -56,8 +57,9 @@ class OfficeController extends Controller
     {
         $office = Office::findOrFail($id);
 
+        // Assuming request field names are still in English
         $request->validate([
-            'name' => 'required|string|max:100|unique:offices,name,' . $id,
+            'name' => 'required|string|max:100|unique:kantor,nama,' . $id, // offices -> kantor, name -> nama
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'radius' => 'required|integer|min:10|max:1000',
@@ -65,11 +67,11 @@ class OfficeController extends Controller
         ]);
 
         $office->update([
-            'name' => $request->name,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
+            'nama' => $request->name,         // name -> nama
+            'lintang' => $request->latitude,  // latitude -> lintang
+            'bujur' => $request->longitude, // longitude -> bujur
             'radius' => $request->radius,
-            'is_active' => $request->has('is_active') ? $request->is_active : $office->is_active,
+            'aktif' => $request->has('is_active') ? $request->is_active : $office->aktif, // is_active -> aktif
         ]);
 
         return redirect()->route('offices.index')
@@ -81,14 +83,15 @@ class OfficeController extends Controller
         $office = Office::findOrFail($id);
         
         // Check if office has active schedules
-        if ($office->schedules()->where('status', 'approved')->exists()) {
+        // Assuming schedules relation is correct and Schedule model uses 'status' and 'disetujui'
+        if ($office->schedules()->where('status', 'disetujui')->exists()) { // approved -> disetujui
             return redirect()->back()
-                            ->with('error', 'Cannot delete office with active schedules.');
+                            ->with('error', 'Tidak dapat menghapus kantor dengan jadwal aktif.'); // Cannot delete office with active schedules.
         }
 
         $office->delete();
 
         return redirect()->route('offices.index')
-                        ->with('success', 'Office deleted successfully.');
+                        ->with('success', 'Kantor berhasil dihapus.'); // Office deleted successfully. -> Kantor berhasil dihapus.
     }
 }

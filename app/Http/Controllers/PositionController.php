@@ -16,95 +16,114 @@ class PositionController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhereHas('department', function($dq) use ($search) {
-                      $dq->where('name', 'like', "%{$search}%");
+                $q->where('nama', 'like', "%{$search}%") // name -> nama
+                  ->orWhere('kode', 'like', "%{$search}%") // code -> kode
+                  ->orWhereHas('department', function($dq) use ($search) { // Assuming department relation is correctly set up
+                      $dq->where('nama', 'like', "%{$search}%"); // department.name -> department.nama
                   });
             });
         }
 
         // Department filter
         if ($request->filled('department_id')) {
-            $query->where('department_id', $request->department_id);
+            $query->where('id_departemen', $request->department_id); // department_id -> id_departemen
         }
 
         // Level filter
         if ($request->filled('level')) {
-            $query->where('level', $request->level);
+            $query->where('tingkat', $request->level); // level -> tingkat
         }
 
         // Status filter
         if ($request->filled('status')) {
-            if ($request->status === 'active') {
-                $query->where('is_active', true);
-            } elseif ($request->status === 'inactive') {
-                $query->where('is_active', false);
-            }
+            // Assuming $request->status is boolean or 'true'/'false' string
+            $isActive = filter_var($request->status, FILTER_VALIDATE_BOOLEAN);
+            $query->where('aktif', $isActive); // is_active -> aktif
         }
 
-        $positions = $query->withCount('employees')
-                          ->orderBy('created_at', 'desc')
+        $positions = $query->withCount('employees') // Assuming employees relation is correct
+                          ->orderBy('dibuat_pada', 'desc') // created_at -> dibuat_pada
                           ->paginate(10);
 
         // Additional data for the view
-        $departments = Department::where('is_active', true)->get();
+        $departments = Department::where('aktif', true)->get(); // is_active -> aktif
         $total_employees = $positions->sum('employees_count');
-        $average_salary = $positions->avg('base_salary');
+        $average_salary = $positions->avg('gaji_pokok'); // base_salary -> gaji_pokok
 
         return view('positions.index', compact('positions', 'departments', 'total_employees', 'average_salary'));
     }
 
     public function create()
     {
-        $departments = Department::where('is_active', true)->get();
+        $departments = Department::where('aktif', true)->get(); // is_active -> aktif
         return view('positions.create', compact('departments'));
     }
 
     public function store(Request $request)
     {
+        // Assuming request field names are still in English
         $request->validate([
-            'code' => 'required|unique:positions|max:10',
+            'code' => 'required|unique:jabatan,kode|max:10', // positions -> jabatan, code -> kode
             'name' => 'required|max:100',
-            'department_id' => 'required|exists:departments,id',
+            'department_id' => 'required|exists:departemen,id', // departments -> departemen
             'base_salary' => 'required|numeric|min:0',
             'level' => 'required|integer|min:1',
             'description' => 'nullable',
+            'is_active' => 'boolean', // Added for consistency, assuming it comes from form
         ]);
 
-        Position::create($request->all());
+        Position::create([
+            'kode' => $request->code,
+            'nama' => $request->name,
+            'id_departemen' => $request->department_id,
+            'gaji_pokok' => $request->base_salary,
+            'tingkat' => $request->level,
+            'deskripsi' => $request->description,
+            'aktif' => $request->has('is_active') ? $request->is_active : true,
+        ]);
 
         return redirect()->route('positions.index')
-                        ->with('success', 'Position created successfully.');
+                        ->with('success', 'Jabatan berhasil dibuat.'); // Position -> Jabatan
     }
 
     public function show(Position $position)
     {
-        $position->load('department', 'employees');
+        $position->load('department', 'employees'); // Assuming these relations are correctly defined in Position model
         return view('positions.show', compact('position'));
     }
 
     public function edit(Position $position)
     {
-        $departments = Department::where('is_active', true)->get();
+        $departments = Department::where('aktif', true)->get(); // is_active -> aktif
         return view('positions.edit', compact('position', 'departments'));
     }
 
     public function update(Request $request, Position $position)
     {
+        // Assuming request field names are still in English
         $request->validate([
-            'code' => 'required|max:10|unique:positions,code,' . $position->id,
+            'code' => 'required|max:10|unique:jabatan,kode,' . $position->id, // positions -> jabatan, code -> kode
             'name' => 'required|max:100',
-            'department_id' => 'required|exists:departments,id',
+            'department_id' => 'required|exists:departemen,id', // departments -> departemen
             'base_salary' => 'required|numeric|min:0',
             'level' => 'required|integer|min:1',
             'description' => 'nullable',
+            'is_active' => 'boolean', // Added for consistency
         ]);
 
-        $position->update($request->all());
+        $dataToUpdate = [
+            'kode' => $request->code,
+            'nama' => $request->name,
+            'id_departemen' => $request->department_id,
+            'gaji_pokok' => $request->base_salary,
+            'tingkat' => $request->level,
+            'deskripsi' => $request->description,
+            'aktif' => $request->has('is_active') ? $request->is_active : $position->aktif, // Retain old value if not provided
+        ];
+        $position->update($dataToUpdate);
 
         return redirect()->route('positions.index')
-                        ->with('success', 'Position updated successfully.');
+                        ->with('success', 'Jabatan berhasil diperbarui.'); // Position -> Jabatan
     }
 
     public function destroy(Position $position)
@@ -112,6 +131,6 @@ class PositionController extends Controller
         $position->delete();
 
         return redirect()->route('positions.index')
-                        ->with('success', 'Position deleted successfully.');
+                        ->with('success', 'Jabatan berhasil dihapus.'); // Position -> Jabatan
     }
 }

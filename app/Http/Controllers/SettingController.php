@@ -39,23 +39,25 @@ class SettingController extends Controller
         ]);
 
         // Update default attendance rule
-        $defaultRule = AttendanceRule::where('is_default', true)->first();
+        // Assuming AttendanceRule model uses 'standar' for is_default
+        $defaultRule = AttendanceRule::where('standar', true)->first();
         if ($defaultRule) {
+            // Assuming request field names like 'working_hours_start' are still English
             $defaultRule->update([
-                'work_start_time' => $request->working_hours_start,
-                'work_end_time' => $request->working_hours_end,
-                'late_tolerance_minutes' => $request->late_tolerance_minutes,
-                'overtime_multiplier' => $request->overtime_rate,
+                'jam_mulai_kerja' => $request->working_hours_start,     // work_start_time -> jam_mulai_kerja
+                'jam_selesai_kerja' => $request->working_hours_end,   // work_end_time -> jam_selesai_kerja
+                'toleransi_keterlambatan_menit' => $request->late_tolerance_minutes, // late_tolerance_minutes -> toleransi_keterlambatan_menit
+                'pengali_lembur' => $request->overtime_rate,         // overtime_multiplier -> pengali_lembur
             ]);
         }
 
         // Cache settings for quick access
         Cache::put('company_settings', $request->only([
             'company_name', 'company_address', 'company_phone', 'company_email'
-        ]), now()->addDays(30));
+        ]), now()->addDays(30)); // These are app-level settings, not directly from a translated DB table here.
 
         return redirect()->route('settings.index')
-                        ->with('success', 'Settings updated successfully.');
+                        ->with('success', 'Pengaturan berhasil diperbarui.'); // Settings updated successfully.
     }
 
     public function attendanceRules()

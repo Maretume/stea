@@ -11,11 +11,11 @@ class LeaveController extends Controller
 {
     public function index()
     {
-        $leaves = Leave::with('user', 'leaveType', 'approvedBy')
-                      ->when(!Auth::user()->hasPermission('leaves.view_all'), function($query) {
-                          return $query->where('user_id', Auth::id());
+        $leaves = Leave::with('user', 'leaveType', 'approvedBy') // Relations use translated foreign keys
+                      ->when(!Auth::user()->hasPermission('leaves.view_all'), function($query) { // hasPermission uses nama_kunci
+                          return $query->where('id_pengguna', Auth::id()); // user_id -> id_pengguna
                       })
-                      ->latest()
+                      ->latest('dibuat_pada') // Assuming created_at is translated to dibuat_pada
                       ->paginate(10);
         
         return view('leaves.index', compact('leaves'));
@@ -23,14 +23,15 @@ class LeaveController extends Controller
 
     public function create()
     {
-        $leaveTypes = LeaveType::where('is_active', true)->get();
+        $leaveTypes = LeaveType::where('aktif', true)->get(); // is_active -> aktif
         return view('leaves.create', compact('leaveTypes'));
     }
 
     public function store(Request $request)
     {
+        // Assuming request field names are still in English
         $request->validate([
-            'leave_type_id' => 'required|exists:leave_types,id',
+            'leave_type_id' => 'required|exists:jenis_cuti,id', // leave_types -> jenis_cuti
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
             'reason' => 'required|string|max:1000',
@@ -41,45 +42,46 @@ class LeaveController extends Controller
         $totalDays = $startDate->diff($endDate)->days + 1;
 
         Leave::create([
-            'user_id' => Auth::id(),
-            'leave_type_id' => $request->leave_type_id,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'total_days' => $totalDays,
-            'reason' => $request->reason,
-            'status' => 'pending',
+            'id_pengguna' => Auth::id(),             // user_id -> id_pengguna
+            'id_jenis_cuti' => $request->leave_type_id, // leave_type_id -> id_jenis_cuti
+            'tanggal_mulai' => $request->start_date,  // start_date -> tanggal_mulai
+            'tanggal_selesai' => $request->end_date,    // end_date -> tanggal_selesai
+            'total_hari' => $totalDays,             // total_days -> total_hari
+            'alasan' => $request->reason,              // reason -> alasan
+            'status' => 'menunggu',                   // pending -> menunggu
         ]);
 
         return redirect()->route('leaves.index')
-                        ->with('success', 'Leave request submitted successfully.');
+                        ->with('success', 'Permintaan cuti berhasil diajukan.'); // Leave request submitted successfully.
     }
 
     public function show(Leave $leave)
     {
-        $leave->load('user', 'leaveType', 'approvedBy');
+        $leave->load('user', 'leaveType', 'approvedBy'); // Relations use translated foreign keys
         return view('leaves.show', compact('leave'));
     }
 
     public function edit(Leave $leave)
     {
-        if ($leave->status !== 'pending') {
+        if ($leave->status !== 'menunggu') { // pending -> menunggu
             return redirect()->route('leaves.index')
-                           ->with('error', 'Cannot edit approved/rejected leave.');
+                           ->with('error', 'Tidak dapat mengubah cuti yang sudah disetujui/ditoLak.'); // Cannot edit approved/rejected leave.
         }
 
-        $leaveTypes = LeaveType::where('is_active', true)->get();
+        $leaveTypes = LeaveType::where('aktif', true)->get(); // is_active -> aktif
         return view('leaves.edit', compact('leave', 'leaveTypes'));
     }
 
     public function update(Request $request, Leave $leave)
     {
-        if ($leave->status !== 'pending') {
+        if ($leave->status !== 'menunggu') { // pending -> menunggu
             return redirect()->route('leaves.index')
-                           ->with('error', 'Cannot update approved/rejected leave.');
+                           ->with('error', 'Tidak dapat memperbarui cuti yang sudah disetujui/ditoLak.'); // Cannot update approved/rejected leave.
         }
 
+        // Assuming request field names are still in English
         $request->validate([
-            'leave_type_id' => 'required|exists:leave_types,id',
+            'leave_type_id' => 'required|exists:jenis_cuti,id', // leave_types -> jenis_cuti
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'reason' => 'required|string|max:1000',
@@ -90,22 +92,22 @@ class LeaveController extends Controller
         $totalDays = $startDate->diff($endDate)->days + 1;
 
         $leave->update([
-            'leave_type_id' => $request->leave_type_id,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'total_days' => $totalDays,
-            'reason' => $request->reason,
+            'id_jenis_cuti' => $request->leave_type_id, // leave_type_id -> id_jenis_cuti
+            'tanggal_mulai' => $request->start_date,  // start_date -> tanggal_mulai
+            'tanggal_selesai' => $request->end_date,    // end_date -> tanggal_selesai
+            'total_hari' => $totalDays,             // total_days -> total_hari
+            'alasan' => $request->reason,              // reason -> alasan
         ]);
 
         return redirect()->route('leaves.index')
-                        ->with('success', 'Leave request updated successfully.');
+                        ->with('success', 'Permintaan cuti berhasil diperbarui.'); // Leave request updated successfully.
     }
 
     public function pending()
     {
-        $leaves = Leave::with('user', 'leaveType')
-                      ->where('status', 'pending')
-                      ->latest()
+        $leaves = Leave::with('user', 'leaveType') // Relations use translated foreign keys
+                      ->where('status', 'menunggu') // pending -> menunggu
+                      ->latest('dibuat_pada') // Assuming created_at is 'dibuat_pada'
                       ->paginate(10);
         
         return view('leaves.pending', compact('leaves'));
@@ -118,14 +120,14 @@ class LeaveController extends Controller
         ]);
 
         $leave->update([
-            'status' => 'approved',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-            'approval_notes' => $request->approval_notes,
+            'status' => 'disetujui', // approved -> disetujui
+            'disetujui_oleh' => Auth::id(), // approved_by -> disetujui_oleh
+            'disetujui_pada' => now(),    // approved_at -> disetujui_pada
+            'catatan_persetujuan' => $request->approval_notes, // approval_notes -> catatan_persetujuan
         ]);
 
         return redirect()->route('leaves.pending')
-                        ->with('success', 'Leave request approved successfully.');
+                        ->with('success', 'Permintaan cuti berhasil disetujui.'); // Leave request approved successfully.
     }
 
     public function reject(Request $request, Leave $leave)
@@ -135,13 +137,13 @@ class LeaveController extends Controller
         ]);
 
         $leave->update([
-            'status' => 'rejected',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-            'approval_notes' => $request->approval_notes,
+            'status' => 'ditoLak', // rejected -> ditoLak
+            'disetujui_oleh' => Auth::id(), // approved_by -> disetujui_oleh (or consider a 'rejected_by' field)
+            'disetujui_pada' => now(),    // approved_at -> disetujui_pada (or 'rejected_at')
+            'catatan_persetujuan' => $request->approval_notes, // approval_notes -> catatan_persetujuan
         ]);
 
         return redirect()->route('leaves.pending')
-                        ->with('success', 'Leave request rejected.');
+                        ->with('success', 'Permintaan cuti berhasil ditoLak.'); // Leave request rejected.
     }
 }
